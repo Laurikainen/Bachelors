@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="" />
+    <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/FilesProcessing/GradesProcessing.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Programm/FilesProcessing/GradesProcessing.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$2.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$3.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$4.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$5.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MainLogic/Log.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MainLogic/Log.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/MainLogic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MainLogic/Main.java" afterDir="false" />
+    </list>
     <ignored path="JavaFxApplication.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path="$PROJECT_DIR$/out/" />
@@ -78,42 +91,12 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="426">
-              <caret line="60" column="4" selection-start-line="60" selection-start-column="4" selection-end-line="62" selection-end-column="5" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#2341#2342#0" expanded="true" />
-                <element signature="e#2383#2384#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/FilesProcessing/MoodleLogsProcessing.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="786">
-              <caret line="102" column="4" selection-start-line="102" selection-start-column="4" selection-end-line="108" selection-end-column="5" />
+            <state relative-caret-position="135">
+              <caret line="9" column="55" lean-forward="true" selection-start-line="9" selection-start-column="55" selection-end-line="9" selection-end-column="55" />
               <folding>
                 <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="425" selection-start-line="425" selection-end-line="425" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#19596#20284#0" expanded="true" />
-                <element signature="e#20283#20284#0" expanded="true" />
-                <element signature="e#20157#21124#0" expanded="true" />
-                <element signature="e#21123#21124#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -122,29 +105,19 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/MainLogic/Log.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="18" selection-start-column="18" selection-end-column="18" />
+            <state relative-caret-position="600">
+              <caret line="40" selection-start-line="40" selection-end-line="40" />
               <folding>
                 <element signature="e#550#551#0" expanded="true" />
                 <element signature="e#577#578#0" expanded="true" />
-                <element signature="e#617#618#0" expanded="true" />
-                <element signature="e#649#650#0" expanded="true" />
                 <element signature="e#688#689#0" expanded="true" />
                 <element signature="e#723#724#0" expanded="true" />
-                <element signature="e#779#780#0" expanded="true" />
-                <element signature="e#827#828#0" expanded="true" />
                 <element signature="e#863#864#0" expanded="true" />
                 <element signature="e#895#896#0" expanded="true" />
-                <element signature="e#945#946#0" expanded="true" />
-                <element signature="e#987#988#0" expanded="true" />
                 <element signature="e#1026#1027#0" expanded="true" />
                 <element signature="e#1061#1062#0" expanded="true" />
-                <element signature="e#1117#1118#0" expanded="true" />
-                <element signature="e#1165#1166#0" expanded="true" />
                 <element signature="e#1203#1204#0" expanded="true" />
                 <element signature="e#1237#1238#0" expanded="true" />
-                <element signature="e#1291#1292#0" expanded="true" />
-                <element signature="e#1337#1338#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -153,15 +126,50 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/FilesProcessing/StudentInfoProcessing.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="126">
+            <state relative-caret-position="780">
               <caret line="52" column="89" selection-start-line="52" selection-start-column="89" selection-end-line="52" selection-end-column="89" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#3352#3353#0" expanded="true" />
                 <element signature="e#3386#3387#0" expanded="true" />
+                <element signature="e#3430#3431#0" expanded="true" />
                 <element signature="e#3465#3466#0" expanded="true" />
+                <element signature="e#3514#3515#0" expanded="true" />
                 <element signature="e#3554#3555#0" expanded="true" />
+                <element signature="e#3609#3610#0" expanded="true" />
                 <element signature="e#3647#3648#0" expanded="true" />
+                <element signature="e#3701#3702#0" expanded="true" />
                 <element signature="e#3732#3733#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="260">
+              <caret line="485" column="93" lean-forward="true" selection-start-line="485" selection-start-column="93" selection-end-line="485" selection-end-column="93" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#9268#9276#0" expanded="true" />
+                <element signature="e#9484#9492#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-174">
+              <caret line="51" column="91" selection-start-line="51" selection-start-column="91" selection-end-line="51" selection-end-column="91" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#2508#2509#0" expanded="true" />
+                <element signature="e#2542#2543#0" expanded="true" />
+                <element signature="e#2923#2924#0" expanded="true" />
+                <element signature="e#2959#2960#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -186,12 +194,21 @@
       <find>moodleLogsPro</find>
       <find>displayS</find>
       <find>system</find>
+      <find>displayBarChartEventName</find>
+      <find>Alert</find>
+      <find>Sys</find>
+      <find>System</find>
+      <find>Name</find>
+      <find>syste</find>
     </findStrings>
   </component>
   <component name="FindManager">
     <FindUsagesManager>
       <setting name="OPEN_NEW_TAB" value="false" />
     </FindUsagesManager>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -222,10 +239,11 @@
         <option value="$PROJECT_DIR$/src/Controllers/LogController.java" />
         <option value="$PROJECT_DIR$/src/Controllers/MainController.java" />
         <option value="$PROJECT_DIR$/src/FilesProcessing/MoodleLogsProcessing.java" />
-        <option value="$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java" />
         <option value="$PROJECT_DIR$/src/MainLogic/MyThread.java" />
-        <option value="$PROJECT_DIR$/src/MainLogic/Log.java" />
         <option value="$PROJECT_DIR$/src/FilesProcessing/StudentInfoProcessing.java" />
+        <option value="$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java" />
+        <option value="$PROJECT_DIR$/src/MainLogic/WorkingThread.java" />
+        <option value="$PROJECT_DIR$/src/MainLogic/Log.java" />
         <option value="$PROJECT_DIR$/src/MainLogic/Main.java" />
       </list>
     </option>
@@ -238,11 +256,11 @@
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="-10" />
-    <option name="y" value="-10" />
-    <option name="width" value="980" />
-    <option name="height" value="1050" />
+    <option name="x" value="-8" />
+    <option name="width" value="977" />
+    <option name="height" value="1038" />
   </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectReloadState">
     <option name="STATE" value="0" />
   </component>
@@ -251,7 +269,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -285,6 +302,7 @@
         </subPane>
       </pane>
       <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -295,6 +313,7 @@
     <property name="MemberChooser.showClasses" value="true" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="OverrideImplement.combined" value="false" />
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="dynamic.classpath" value="false" />
@@ -526,18 +545,20 @@
       <workItem from="1578515115485" duration="8290000" />
       <workItem from="1578578236728" duration="1372000" />
       <workItem from="1578585244528" duration="2834000" />
-      <workItem from="1578607240903" duration="14959000" />
+      <workItem from="1578607240903" duration="15680000" />
+      <workItem from="1578750337700" duration="21354000" />
+      <workItem from="1578832182091" duration="30791000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="218570000" />
+    <option name="totallyTimeSpent" value="271436000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6703755" weight="0.15704697" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6703755" visible="true" weight="0.19932885" />
       <window_info id="Structure" order="1" weight="0.25" />
       <window_info id="Favorites" order="2" />
       <window_info id="Designer" order="3" />
@@ -556,7 +577,7 @@
       <window_info anchor="bottom" id="Problems" order="9" />
       <window_info anchor="bottom" id="Changes" order="10" />
       <window_info anchor="bottom" id="Profiler" order="11" />
-      <window_info anchor="bottom" id="Event Log" order="12" />
+      <window_info anchor="bottom" id="Event Log" order="12" weight="0.3286119" />
       <window_info anchor="bottom" id="Messages" order="13" weight="0.29745042" />
       <window_info anchor="bottom" id="FindBugs-IDEA" order="14" />
       <window_info anchor="bottom" id="Docker" order="15" show_stripe_button="false" />
@@ -564,6 +585,7 @@
       <window_info anchor="bottom" id="Database Changes" order="17" />
       <window_info anchor="bottom" id="Terminal" order="18" weight="0.3286119" />
       <window_info anchor="bottom" id="ANTLR Preview" order="19" />
+      <window_info anchor="bottom" id="Duplicates" order="20" weight="0.3286119" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Database" order="1" weight="0.3295302" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -653,13 +675,6 @@
     <entry file="file://$PROJECT_DIR$/src/Resources/MainTab2.fxml" />
     <entry file="file://$PROJECT_DIR$/src/MainLogic/MainLogic.java" />
     <entry file="file://$PROJECT_DIR$/src/Resources/MainTab.fxml" />
-    <entry file="jar://C:/Program Files/Java/javafx-sdk-13.0.1/lib/javafx.base.jar!/javafx/event/EventHandler.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Resources/ChoiceTab.fxml" />
     <entry file="file://$PROJECT_DIR$/src/Controllers/MainController.java" />
     <entry file="file://$PROJECT_DIR$/src/Controllers/StudentController.java" />
@@ -692,36 +707,48 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/MainLogic/MyThread.java">
+    <entry file="file://$PROJECT_DIR$/src/MainLogic/MyThread.java" />
+    <entry file="file://$PROJECT_DIR$/src/MainLogic/WorkingThread.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-15">
-          <caret line="8" column="4" lean-forward="true" selection-start-line="8" selection-start-column="4" selection-end-line="8" selection-end-column="41" />
+        <state relative-caret-position="60">
+          <caret line="4" column="4" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="46" />
           <folding>
-            <element signature="e#213#214#0" expanded="true" />
-            <element signature="e#241#242#0" expanded="true" />
+            <element signature="e#194#195#0" expanded="true" />
+            <element signature="e#238#239#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FilesProcessing/StudentInfoProcessing.java">
+    <entry file="jar://C:/Program Files/Java/javafx-sdk-13.0.1/lib/javafx.base.jar!/javafx/event/EventHandler.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="126">
-          <caret line="52" column="89" selection-start-line="52" selection-start-column="89" selection-end-line="52" selection-end-column="89" />
+        <state relative-caret-position="120">
+          <caret line="11" column="9" selection-start-line="11" selection-start-column="9" selection-end-line="11" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MainLogic/Log.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="40" selection-start-line="40" selection-end-line="40" />
           <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#3386#3387#0" expanded="true" />
-            <element signature="e#3465#3466#0" expanded="true" />
-            <element signature="e#3554#3555#0" expanded="true" />
-            <element signature="e#3647#3648#0" expanded="true" />
-            <element signature="e#3732#3733#0" expanded="true" />
+            <element signature="e#550#551#0" expanded="true" />
+            <element signature="e#577#578#0" expanded="true" />
+            <element signature="e#688#689#0" expanded="true" />
+            <element signature="e#723#724#0" expanded="true" />
+            <element signature="e#863#864#0" expanded="true" />
+            <element signature="e#895#896#0" expanded="true" />
+            <element signature="e#1026#1027#0" expanded="true" />
+            <element signature="e#1061#1062#0" expanded="true" />
+            <element signature="e#1203#1204#0" expanded="true" />
+            <element signature="e#1237#1238#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/FilesProcessing/MoodleLogsProcessing.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="786">
-          <caret line="102" column="4" selection-start-line="102" selection-start-column="4" selection-end-line="108" selection-end-column="5" />
+        <state relative-caret-position="135">
+          <caret line="9" column="55" lean-forward="true" selection-start-line="9" selection-start-column="55" selection-end-line="9" selection-end-column="55" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -730,55 +757,46 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/FilesProcessing/GradesProcessing.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="426">
-          <caret line="60" column="4" selection-start-line="60" selection-start-column="4" selection-end-line="62" selection-end-column="5" />
+        <state relative-caret-position="-174">
+          <caret line="51" column="91" selection-start-line="51" selection-start-column="91" selection-end-line="51" selection-end-column="91" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2341#2342#0" expanded="true" />
-            <element signature="e#2383#2384#0" expanded="true" />
+            <element signature="e#2508#2509#0" expanded="true" />
+            <element signature="e#2542#2543#0" expanded="true" />
+            <element signature="e#2923#2924#0" expanded="true" />
+            <element signature="e#2959#2960#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/MainLogic/Log.java">
+    <entry file="file://$PROJECT_DIR$/src/FilesProcessing/StudentInfoProcessing.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="18" selection-start-column="18" selection-end-column="18" />
+        <state relative-caret-position="780">
+          <caret line="52" column="89" selection-start-line="52" selection-start-column="89" selection-end-line="52" selection-end-column="89" />
           <folding>
-            <element signature="e#550#551#0" expanded="true" />
-            <element signature="e#577#578#0" expanded="true" />
-            <element signature="e#617#618#0" expanded="true" />
-            <element signature="e#649#650#0" expanded="true" />
-            <element signature="e#688#689#0" expanded="true" />
-            <element signature="e#723#724#0" expanded="true" />
-            <element signature="e#779#780#0" expanded="true" />
-            <element signature="e#827#828#0" expanded="true" />
-            <element signature="e#863#864#0" expanded="true" />
-            <element signature="e#895#896#0" expanded="true" />
-            <element signature="e#945#946#0" expanded="true" />
-            <element signature="e#987#988#0" expanded="true" />
-            <element signature="e#1026#1027#0" expanded="true" />
-            <element signature="e#1061#1062#0" expanded="true" />
-            <element signature="e#1117#1118#0" expanded="true" />
-            <element signature="e#1165#1166#0" expanded="true" />
-            <element signature="e#1203#1204#0" expanded="true" />
-            <element signature="e#1237#1238#0" expanded="true" />
-            <element signature="e#1291#1292#0" expanded="true" />
-            <element signature="e#1337#1338#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+            <element signature="e#3352#3353#0" expanded="true" />
+            <element signature="e#3386#3387#0" expanded="true" />
+            <element signature="e#3430#3431#0" expanded="true" />
+            <element signature="e#3465#3466#0" expanded="true" />
+            <element signature="e#3514#3515#0" expanded="true" />
+            <element signature="e#3554#3555#0" expanded="true" />
+            <element signature="e#3609#3610#0" expanded="true" />
+            <element signature="e#3647#3648#0" expanded="true" />
+            <element signature="e#3701#3702#0" expanded="true" />
+            <element signature="e#3732#3733#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="425" selection-start-line="425" selection-end-line="425" />
+        <state relative-caret-position="260">
+          <caret line="485" column="93" lean-forward="true" selection-start-line="485" selection-start-column="93" selection-end-line="485" selection-end-column="93" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#19596#20284#0" expanded="true" />
-            <element signature="e#20283#20284#0" expanded="true" />
-            <element signature="e#20157#21124#0" expanded="true" />
-            <element signature="e#21123#21124#0" expanded="true" />
+            <element signature="e#9268#9276#0" expanded="true" />
+            <element signature="e#9484#9492#0" expanded="true" />
           </folding>
         </state>
       </provider>

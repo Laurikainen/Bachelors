@@ -22,39 +22,20 @@ public class Log {
         return time;
     }
 
-    public void setTime(String time) {
-        this.time = time;
-    }
-
     public String getEventContext() {
         return eventContext;
-    }
-
-    public void setEventContext(String eventContext) {
-        this.eventContext = eventContext;
     }
 
     public String getEventName() {
         return eventName;
     }
 
-    public void setEventName(String eventName) {
-        this.eventName = eventName;
-    }
-
     public String getStudentGroup() {
         return studentGroup;
-    }
-
-    public void setStudentGroup(String studentGroup) {
-        this.studentGroup = studentGroup;
     }
 
     public String getStudentName() {
         return studentName;
     }
 
-    public void setStudentName(String studentName) {
-        this.studentName = studentName;
-    }
 }
