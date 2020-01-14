@@ -7,6 +7,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/MainLogic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MainLogic/Main.java" afterDir="false" />
     </list>
     <ignored path="JavaFxApplication.iws" />
@@ -134,8 +137,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="910" column="71" lean-forward="true" selection-start-line="910" selection-start-column="71" selection-end-line="910" selection-end-column="71" />
+            <state relative-caret-position="300">
+              <caret line="1070" column="17" lean-forward="true" selection-start-line="1070" selection-start-column="17" selection-end-line="1070" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -182,6 +185,7 @@
       <find>syste</find>
       <find>Algusae</find>
       <find>textfield</find>
+      <find>barCh</find>
     </findStrings>
   </component>
   <component name="FindManager">
@@ -237,7 +241,7 @@
     </treeState>
   </component>
   <component name="PhpWorkspaceProjectConfiguration" backward_compatibility_performed="true" />
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="951" />
     <option name="y" value="-9" />
     <option name="width" value="978" />
@@ -543,15 +547,15 @@
       <workItem from="1578750337700" duration="21354000" />
       <workItem from="1578832182091" duration="35624000" />
       <workItem from="1578916468564" duration="3376000" />
-      <workItem from="1579020271145" duration="17781000" />
+      <workItem from="1579020271145" duration="20348000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="297426000" />
+    <option name="totallyTimeSpent" value="299993000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="838" extended-state="7" />
+    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" sideWeight="0.6703755" weight="0.2033557" />
@@ -768,8 +772,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="910" column="71" lean-forward="true" selection-start-line="910" selection-start-column="71" selection-end-line="910" selection-end-column="71" />
+        <state relative-caret-position="300">
+          <caret line="1070" column="17" lean-forward="true" selection-start-line="1070" selection-start-column="17" selection-end-line="1070" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

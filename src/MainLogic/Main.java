@@ -24,6 +24,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.WeekFields;
 import java.util.*;
 
 public class Main extends Application {
@@ -169,10 +170,10 @@ public class Main extends Application {
         listViewStudentName.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelectedData.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         // Making ListViews and TableView width to 900
-        listViewLogContext.setMinWidth(900);
-        listViewLogEvent.setMinWidth(900);
-        listViewStudentGroup.setMinWidth(900);
-        listViewStudentName.setMinWidth(900);
+        listViewLogContext.setMinWidth(800);
+        listViewLogEvent.setMinWidth(800);
+        listViewStudentGroup.setMinWidth(800);
+        listViewStudentName.setMinWidth(800);
         tableViewSelectedData.setMinWidth(900);
         tableViewSelectedStudentsGrades.setMinWidth(900);
         // Making TextFields to filter ListViews
@@ -387,7 +388,7 @@ public class Main extends Application {
         titledPaneTimeFrame.setContent(gridPaneTimeFrame);
         tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContext, tabEventName, tabStudentName, tabStudentGroup, tabStudentGrades, tabVisitsPerWeek, tabVisitsPerDay, tabVisitsPerHour);
         // GridPane connected with TabPane
-        gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);
+        gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);;
         // Creating the new scenes
         sceneMainView = new Scene(titledPaneMainView, 900, 500);
         sceneLogContext = new Scene(titledPaneEventContext, 900, 500);
@@ -865,7 +866,7 @@ public class Main extends Application {
                     dataSeriesEventName.getData().add(new XYChart.Data(dataMapEventName.get(key), key));
                 }
             }
-            barChartEventName.setMinWidth(800);
+            barChartEventName.setMinWidth(900);
             barChartEventName.getData().add(dataSeriesEventName);
         });
     }
@@ -907,7 +908,7 @@ public class Main extends Application {
                     dataSeriesEventContext.getData().add(new XYChart.Data(dataMapEventContext.get(key), key));
                 }
             }
-            barChartEventContext.setMinWidth(800);
+            barChartEventContext.setMinWidth(900);
             barChartEventContext.getData().add(dataSeriesEventContext);
         });
     }
@@ -927,7 +928,7 @@ public class Main extends Application {
             for (String key : dataMapStudentGroup.keySet()) {
                 dataSeriesStudentGroup.getData().add(new XYChart.Data(key, dataMapStudentGroup.get(key)));
             }
-            barChartStudentGroup.setMinWidth(800);
+            barChartStudentGroup.setMinWidth(900);
             barChartStudentGroup.getData().add(dataSeriesStudentGroup);
         });
     }
@@ -947,7 +948,7 @@ public class Main extends Application {
             for (String key : dataMapStudentName.keySet()) {
                 dataSeriesStudentName.getData().add(new XYChart.Data(key, dataMapStudentName.get(key)));
             }
-            barChartStudentName.setMinWidth(800);
+            barChartStudentName.setMinWidth(900);
             barChartStudentName.getData().add(dataSeriesStudentName);
         });
     }
@@ -992,63 +993,87 @@ public class Main extends Application {
             dataSeriesVisitsPerHour.setName("Kui palju külastatakse Moodle't erinetave ajavahemike jooksul.");
             List<String> time = new ArrayList<>();
             List<Integer> timeOccurrence = new ArrayList<>();
-            time.add("0-2");
+            time.add("0-1");
             timeOccurrence.add(0);
-            time.add("3-5");
+            time.add("2-3");
             timeOccurrence.add(0);
-            time.add("6-8");
+            time.add("4-5");
             timeOccurrence.add(0);
-            time.add("9-11");
+            time.add("6-7");
             timeOccurrence.add(0);
-            time.add("12-14");
+            time.add("8-9");
             timeOccurrence.add(0);
-            time.add("15-17");
+            time.add("10-11");
             timeOccurrence.add(0);
-            time.add("18-20");
+            time.add("12-13");
             timeOccurrence.add(0);
-            time.add("21-23");
+            time.add("14-15");
+            timeOccurrence.add(0);
+            time.add("16-17");
+            timeOccurrence.add(0);
+            time.add("18-19");
+            timeOccurrence.add(0);
+            time.add("20-21");
+            timeOccurrence.add(0);
+            time.add("22-23");
             timeOccurrence.add(0);
             for (Log log : filteredResults) {
                 String[] logArray = log.getTime().split(" ");
                 DateTimeFormatter dateTimeFormatterTime = DateTimeFormatter.ofPattern("HH.mm");
                 LocalTime logTime = LocalTime.parse(logArray[1], dateTimeFormatterTime);
-                if (logTime.getHour() == 0 || logTime.getHour() == 1 || logTime.getHour() == 2) {
+                if (logTime.getHour() == 0 || logTime.getHour() == 1) {
                     timeOccurrence.add(0, timeOccurrence.get(0) + 1);
                     timeOccurrence.remove(1);
                 }
-                else if (logTime.getHour() == 3 || logTime.getHour() == 4 || logTime.getHour() == 5) {
+                else if (logTime.getHour() == 2 || logTime.getHour() == 3) {
                     timeOccurrence.add(1, timeOccurrence.get(1) + 1);
                     timeOccurrence.remove(2);
                 }
-                else if (logTime.getHour() == 6 || logTime.getHour() == 7 || logTime.getHour() == 8) {
+                else if (logTime.getHour() == 4 || logTime.getHour() == 5) {
                     timeOccurrence.add(2, timeOccurrence.get(2) + 1);
                     timeOccurrence.remove(3);
                 }
-                else if (logTime.getHour() == 9 || logTime.getHour() == 10 || logTime.getHour() == 11) {
+                else if (logTime.getHour() == 6 || logTime.getHour() == 7) {
                     timeOccurrence.add(3, timeOccurrence.get(3) + 1);
                     timeOccurrence.remove(4);
                 }
-                else if (logTime.getHour() == 12 || logTime.getHour() == 13 || logTime.getHour() == 14) {
+                else if (logTime.getHour() == 8 || logTime.getHour() == 9) {
                     timeOccurrence.add(4, timeOccurrence.get(4) + 1);
                     timeOccurrence.remove(5);
                 }
-                else if (logTime.getHour() == 15 || logTime.getHour() == 16 || logTime.getHour() == 17) {
+                else if (logTime.getHour() == 10 || logTime.getHour() == 11) {
                     timeOccurrence.add(5, timeOccurrence.get(5) + 1);
                     timeOccurrence.remove(6);
                 }
-                else if (logTime.getHour() == 18 || logTime.getHour() == 19 || logTime.getHour() == 20) {
+                else if (logTime.getHour() == 12 || logTime.getHour() == 13) {
                     timeOccurrence.add(6, timeOccurrence.get(6) + 1);
                     timeOccurrence.remove(7);
                 }
-                else {
+                else if (logTime.getHour() == 14 || logTime.getHour() == 15) {
                     timeOccurrence.add(7, timeOccurrence.get(7) + 1);
                     timeOccurrence.remove(8);
+                }
+                else if (logTime.getHour() == 16 || logTime.getHour() == 17) {
+                    timeOccurrence.add( 8, timeOccurrence.get(8) + 1);
+                    timeOccurrence.remove(9);
+                }
+                else if (logTime.getHour() == 18 || logTime.getHour() == 19) {
+                    timeOccurrence.add(9, timeOccurrence.get(9) + 1);
+                    timeOccurrence.remove(10);
+                }
+                else if (logTime.getHour() == 20 || logTime.getHour() == 21) {
+                    timeOccurrence.add(10, timeOccurrence.get(10) + 1);
+                    timeOccurrence.remove(11);
+                }
+                else {
+                    timeOccurrence.add( 11, timeOccurrence.get(11) + 1);
+                    timeOccurrence.remove(12);
                 }
             }
             for (int i = 0; i < time.size(); i++) {
                 dataSeriesVisitsPerHour.getData().add(new XYChart.Data(time.get(i), timeOccurrence.get(i)));
             }
-            barChartVisitsPerHour.setMinWidth(800);
+            barChartVisitsPerHour.setMinWidth(900);
             barChartVisitsPerHour.getData().add(dataSeriesVisitsPerHour);
         });
     }
@@ -1057,7 +1082,25 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series dataSeriesVisitsPerWeek = new XYChart.Series();
             dataSeriesVisitsPerWeek.setName("Kui palju külastatakse Moodle't erinevatel õppenädalatel.");
-            barChartVisitsPerWeek.setMinWidth(800);
+            List<Integer> weekOccurrences = new ArrayList<>();
+            for (int i = 0; i < 52; i++) {
+                weekOccurrences.add(0);
+            }
+            for (Log log : filteredResults) {
+                DateTimeFormatter dateTimeFormatter;
+                String[] logArray = log.getTime().split(" ");
+                if (logArray[0].length() == 9) { dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy"); }
+                else { dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); }
+                LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
+                WeekFields weekFields = WeekFields.of(Locale.getDefault());
+                int weekNumber = localDate.get(weekFields.weekOfWeekBasedYear());
+                weekOccurrences.add(weekNumber-1, weekOccurrences.get(weekNumber-1) + 1);
+                weekOccurrences.remove(weekNumber);
+            }
+            for (int i = 0; i < weekOccurrences.size(); i++) {
+                dataSeriesVisitsPerWeek.getData().add(new XYChart.Data(String.valueOf(i+1), weekOccurrences.get(i)));
+            }
+            barChartVisitsPerWeek.setMinWidth(900);
             barChartVisitsPerWeek.getData().add(dataSeriesVisitsPerWeek);
         });
     }
@@ -1124,7 +1167,7 @@ public class Main extends Application {
             for (int i = 0; i < day.size(); i++) {
                 dataSeriesVisitsPerDay.getData().add(new XYChart.Data(day.get(i), dayOccurrences.get(i)));
             }
-            barChartVisitsPerDay.setMinWidth(800);
+            barChartVisitsPerDay.setMinWidth(900);
             barChartVisitsPerDay.getData().add(dataSeriesVisitsPerDay);
         });
     }
