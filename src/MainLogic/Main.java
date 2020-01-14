@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.scene.Scene;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
@@ -24,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.IntStream;
 
 public class Main extends Application {
 
@@ -33,7 +35,9 @@ public class Main extends Application {
     private StudentInfoProcessing studentInfoProcessing;
     private GradesProcessing gradesProcessing;
     private ListView<String> listViewLogContext = new ListView<>();
+    private ListView<String> listViewLogEventFinal = new ListView<>();
     private ListView<String> listViewLogEvent = new ListView<>();
+    private ListView<String> listViewStudentNameFinal = new ListView<>();
     private ListView<String> listViewStudentName = new ListView<>();
     private ListView<String> listViewStudentGroup = new ListView<>();
     private TableView tableViewSelectedData = new TableView();
@@ -116,7 +120,7 @@ public class Main extends Application {
         Label labelLog = new Label("Moodle'i logid (.csv) ");
         Label labelLogFileName = new Label();
         Label labelStudentFileName =  new Label();
-        Label labelGradeFileName = new Label();;
+        Label labelGradeFileName = new Label();
         Label labelDateFrom = new Label("Alguskuupäev ");
         Label labelDateTo = new Label("Lõpukuupäev ");
         Label labelTimeFrom = new Label("Alguskellaaeg ");
@@ -138,6 +142,7 @@ public class Main extends Application {
         Button buttonGoBackToChooseStudentName = new Button("Tagasi");
         Button buttonRemoveDateAndTime = new Button("Tühjenda väljad");
         Button buttonGoBackToTimeFrame = new Button("Tagasi");
+        // SearchView
         // Making ListViews and TableView selection models to multiple
         listViewLogContext.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         listViewLogEvent.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -151,6 +156,85 @@ public class Main extends Application {
         listViewStudentName.setMinWidth(900);
         tableViewSelectedData.setMinWidth(900);
         tableViewSelectedStudentsGrades.setMinWidth(900);
+        // Making TextFields to filter ListViews
+        TextField textFieldFilteredLogContext = new TextField();
+        TextField textFieldFilteredLogEvent = new TextField();
+        TextField textFieldFilteredStudentGroup = new TextField();
+        TextField textFieldFilteredStudentName = new TextField();
+        // Setting TextFields size
+        textFieldFilteredLogContext.setMinWidth(800);
+        textFieldFilteredLogEvent.setMinWidth(800);
+        textFieldFilteredStudentGroup.setMinWidth(800);
+        textFieldFilteredStudentName.setMinWidth(800);
+        // Creating filters for the ListViews
+        textFieldFilteredLogContext.textProperty().addListener(obs -> {
+            String filterLogContext = textFieldFilteredLogContext.getText();
+            if(filterLogContext == null || filterLogContext.length() == 0) {
+                List<String> listLogContext = new ArrayList<>(moodleLogsProcessing.getEventContext());
+                Collections.sort(listLogContext);
+                listViewLogContext.setItems(FXCollections.observableArrayList(listLogContext));
+            }
+            else {
+                List<String> listLogContext = new ArrayList<>();
+                for (String eventContext : moodleLogsProcessing.getEventContext()) {
+                    if (eventContext.contains(filterLogContext)) {
+                        listLogContext.add(eventContext);
+                    }
+                }
+                Collections.sort(listLogContext);
+                listViewLogContext.setItems(FXCollections.observableArrayList(listLogContext));
+            }
+        });
+        textFieldFilteredLogEvent.textProperty().addListener(obs -> {
+            String filterLogName = textFieldFilteredLogEvent.getText();
+            if(filterLogName == null || filterLogName.length() == 0) {
+                listViewLogEvent.setItems(listViewLogEventFinal.getItems());
+            }
+            else {
+                List<String> listLogEvent = new ArrayList<>();
+                for (String eventName : listViewLogEventFinal.getItems()) {
+                    if (eventName.contains(filterLogName)) {
+                        listLogEvent.add(eventName);
+                    }
+                }
+                Collections.sort(listLogEvent);
+                listViewLogEvent.setItems(FXCollections.observableArrayList(listLogEvent));
+            }
+        });
+        textFieldFilteredStudentGroup.textProperty().addListener(obs -> {
+            String filterStudentGroup = textFieldFilteredStudentGroup.getText();
+            if(filterStudentGroup == null || filterStudentGroup.length() == 0) {
+                List<String> listStudentGroup = new ArrayList<>(studentInfoProcessing.getStudentGroup());
+                Collections.sort(listStudentGroup);
+                listViewStudentGroup.setItems(FXCollections.observableArrayList(listStudentGroup));
+            }
+            else {
+                List<String> listStudentGroup = new ArrayList<>();
+                for (String studentGroup : studentInfoProcessing.getStudentGroup()) {
+                    if (studentGroup.contains(filterStudentGroup)) {
+                        listStudentGroup.add(studentGroup);
+                    }
+                }
+                Collections.sort(listStudentGroup);
+                listViewStudentGroup.setItems(FXCollections.observableArrayList(listStudentGroup));
+            }
+        });
+        textFieldFilteredStudentName.textProperty().addListener(obs -> {
+            String filterStudentName = textFieldFilteredStudentName.getText();
+            if(filterStudentName == null || filterStudentName.length() == 0) {
+                listViewStudentName.setItems(listViewStudentNameFinal.getItems());
+            }
+            else {
+                List<String> listStudentName = new ArrayList<>();
+                for (String studentName : listViewStudentNameFinal.getItems()) {
+                    if (studentName.contains(filterStudentName)) {
+                        listStudentName.add(studentName);
+                    }
+                }
+                Collections.sort(listStudentName);
+                listViewStudentName.setItems(FXCollections.observableArrayList(listStudentName));
+            }
+        });
         // Creating FileChoosers
         FileChooser fileChooserLog = new FileChooser();
         FileChooser fileChooserStudent = new FileChooser();
@@ -169,10 +253,10 @@ public class Main extends Application {
         // Creating DatePicker and ChoiceBoxes
         DatePicker datePickerFrom = new DatePicker();
         DatePicker datePickerTo = new DatePicker();
-        ChoiceBox<String> choiceBoxTimeFromHours = new ChoiceBox<String>();
+        ChoiceBox<String> choiceBoxTimeFromHours = new ChoiceBox<>();
         ChoiceBox<String> choiceBoxTimeFromMinutes = new ChoiceBox<>();
         ChoiceBox<String> choiceBoxTimeToHours = new ChoiceBox<>();
-        ChoiceBox<String> choiceBoxTimeToMinutes = new ChoiceBox<String>();
+        ChoiceBox<String> choiceBoxTimeToMinutes = new ChoiceBox<>();
         // Initializing ChoiceBoxes
         for (int i = 0; i<25; i++) {
             choiceBoxTimeFromHours.getItems().add(Integer.toString(i));
@@ -216,18 +300,22 @@ public class Main extends Application {
         gridPaneMainView.add(buttonSubmitAllTheChosenFiles, 2, 3);
         gridPaneMainView.setVgap(15);
         gridPaneMainView.setHgap(200);
-        gridPaneEventContext.add(listViewLogContext, 0, 0, 2, 1);
-        gridPaneEventName.add(listViewLogEvent, 0, 0, 2, 1);
-        gridPaneStudentGroups.add(listViewStudentGroup, 0, 0, 2, 1);
-        gridPaneStudentName.add(listViewStudentName, 0, 0, 2, 1);
-        gridPaneEventContext.add(buttonGoBackToMainView, 0, 1);
-        gridPaneEventContext.add(buttonGoToChooseEventName, 1, 1);
-        gridPaneEventName.add(buttonGoBackToChooseEventContext, 0, 1);
-        gridPaneEventName.add(buttonGoToChooseStudentGroup, 1, 1);
-        gridPaneStudentGroups.add(buttonGoBackToChooseEventName, 0, 1);
-        gridPaneStudentGroups.add(buttonGoToChooseStudentName, 1, 1);
-        gridPaneStudentName.add(buttonGoBackToChoosetudentGroup, 0, 1);
-        gridPaneStudentName.add(buttonGoToChooseTimeFrame, 1, 1);
+        gridPaneEventContext.add(textFieldFilteredLogContext, 0, 0, 2, 1);
+        gridPaneEventName.add(textFieldFilteredLogEvent, 0, 0,2 ,1);
+        gridPaneStudentGroups.add(textFieldFilteredStudentGroup, 0, 0, 2, 1);
+        gridPaneStudentName.add(textFieldFilteredStudentName, 0, 0, 2, 1);
+        gridPaneEventContext.add(listViewLogContext, 0,  1, 2, 1);
+        gridPaneEventName.add(listViewLogEvent, 0, 1, 2, 1);
+        gridPaneStudentGroups.add(listViewStudentGroup, 0, 1, 2, 1);
+        gridPaneStudentName.add(listViewStudentName, 0, 1, 2, 1);
+        gridPaneEventContext.add(buttonGoBackToMainView, 0, 2);
+        gridPaneEventContext.add(buttonGoToChooseEventName, 1, 2);
+        gridPaneEventName.add(buttonGoBackToChooseEventContext, 0, 2);
+        gridPaneEventName.add(buttonGoToChooseStudentGroup, 1, 2);
+        gridPaneStudentGroups.add(buttonGoBackToChooseEventName, 0, 2);
+        gridPaneStudentGroups.add(buttonGoToChooseStudentName, 1, 2);
+        gridPaneStudentName.add(buttonGoBackToChoosetudentGroup, 0, 2);
+        gridPaneStudentName.add(buttonGoToChooseTimeFrame, 1, 2);
         gridPaneEventContext.setVgap(15);
         gridPaneEventName.setVgap(15);
         gridPaneStudentGroups.setVgap(15);
@@ -283,26 +371,18 @@ public class Main extends Application {
         sceneFilterByName = new Scene(titledPaneStudentName, 900, 500);
         sceneTimeFrame = new Scene(titledPaneTimeFrame, 900, 500);
         sceneDisplayAllSelectedData = new Scene(gridPaneTabPane, 900, 500);
-
-
         // Button setOnAction()'s
         buttonChooseStudentFile.setOnAction(e -> {
             studentFile = fileChooserStudent.showOpenDialog(stage);
-            if (studentFile != null) {
-                labelStudentFileName.setText(studentFile.getName() + " ");
-            }
+            if (studentFile != null) { labelStudentFileName.setText(studentFile.getName() + " "); }
         });
         buttonChooseGradeFile.setOnAction(e -> {
             gradeFile = fileChooserGrade.showOpenDialog(stage);
-            if (gradeFile != null) {
-                labelGradeFileName.setText(gradeFile.getName() + " ");
-            }
+            if (gradeFile != null) { labelGradeFileName.setText(gradeFile.getName() + " "); }
         });
         buttonChooseLogFile.setOnAction(e -> {
             logFile = fileChooserLog.showOpenDialog(stage);
-            if (logFile != null) {
-                labelLogFileName.setText(logFile.getName() + " ");
-            }
+            if (logFile != null) { labelLogFileName.setText(logFile.getName() + "  "); }
         });
         buttonSubmitAllTheChosenFiles.setOnAction(e -> {
             Alert alertFileNotFound = null;
@@ -392,36 +472,22 @@ public class Main extends Application {
                     StringBuilder timeTo = new StringBuilder();
                     if (Integer.parseInt(String.valueOf(choiceBoxTimeFromHours.getValue())) < 10) {
                         timeFrom.append("0");
-                        timeFrom.append(choiceBoxTimeFromHours.getValue());
-                        timeFrom.append(".");
-                        if (Integer.parseInt(String.valueOf(choiceBoxTimeFromMinutes.getValue())) < 10) {
-                            timeFrom.append("0");
-                        }
-                        timeFrom.append(choiceBoxTimeFromMinutes.getValue());
-                    } else {
-                        timeFrom.append(choiceBoxTimeFromHours.getValue());
-                        timeFrom.append(".");
-                        if (Integer.parseInt(String.valueOf(choiceBoxTimeFromMinutes.getValue())) < 10) {
-                            timeFrom.append("0");
-                        }
-                        timeFrom.append(choiceBoxTimeFromMinutes.getValue());
                     }
                     if (Integer.parseInt(String.valueOf(choiceBoxTimeToHours.getValue())) < 10) {
                         timeTo.append("0");
-                        timeTo.append(choiceBoxTimeToHours.getValue());
-                        timeTo.append(".");
-                        if (Integer.parseInt(String.valueOf(choiceBoxTimeToMinutes.getValue())) < 10) {
-                            timeTo.append("0");
-                        }
-                        timeTo.append(choiceBoxTimeToMinutes.getValue());
-                    } else {
-                        timeTo.append(choiceBoxTimeToHours.getValue());
-                        timeTo.append(".");
-                        if (Integer.parseInt(String.valueOf(choiceBoxTimeToMinutes.getValue())) < 10) {
-                            timeTo.append("0");
-                        }
-                        timeTo.append(choiceBoxTimeToMinutes.getValue());
                     }
+                    timeFrom.append(choiceBoxTimeFromHours.getValue());
+                    timeFrom.append(".");
+                    timeTo.append(choiceBoxTimeToHours.getValue());
+                    timeTo.append(".");
+                    if (Integer.parseInt(String.valueOf(choiceBoxTimeFromMinutes.getValue())) < 10) {
+                        timeFrom.append("0");
+                    }
+                    if (Integer.parseInt(String.valueOf(choiceBoxTimeToMinutes.getValue())) < 10) {
+                        timeTo.append("0");
+                    }
+                    timeFrom.append(choiceBoxTimeFromMinutes.getValue());
+                    timeTo.append(choiceBoxTimeToMinutes.getValue());
                     localTimeFrom = timeFrom.toString();
                     localTimeTo = timeTo.toString();
 
@@ -552,8 +618,6 @@ public class Main extends Application {
             stage.setScene(sceneFilterByName);
         });
         buttonGoBackToTimeFrame.setOnAction(e -> {
-            datePickerFrom.setValue(null);
-            datePickerTo.setValue(null);
             choiceBoxTimeFromHours.setValue(null);
             choiceBoxTimeFromMinutes.setValue(null);
             choiceBoxTimeToHours.setValue(null);
@@ -562,6 +626,8 @@ public class Main extends Application {
             localDateTo = null;
             localTimeFrom = null;
             localTimeTo = null;
+            datePickerFrom.setValue(null);
+            datePickerTo.setValue(null);
             filteredResults = new ArrayList<>();
             barChartEventName.getData().clear();
             barChartEventContext.getData().clear();
@@ -574,12 +640,12 @@ public class Main extends Application {
 
         // Extra Button actions
         buttonRemoveDateAndTime.setOnAction(e -> {
+            datePickerFrom.setValue(null);
+            datePickerTo.setValue(null);
             localDateFrom = null;
             localDateTo = null;
             localTimeFrom = null;
             localTimeTo = null;
-            datePickerFrom.setValue(null);
-            datePickerTo.setValue(null);
             choiceBoxTimeFromHours.setValue(null);
             choiceBoxTimeFromMinutes.setValue(null);
             choiceBoxTimeToHours.setValue(null);
@@ -620,6 +686,7 @@ public class Main extends Application {
             List<String> listEventName = new ArrayList<>(setEventName);
             Collections.sort(listEventName);
             listViewLogEvent.getItems().addAll(listEventName);
+            listViewLogEventFinal.setItems(listViewLogEvent.getItems());
         });
     }
 
@@ -643,6 +710,7 @@ public class Main extends Application {
             List<String> listStudentName = new ArrayList<>(setStudentName);
             Collections.sort(listStudentName);
             listViewStudentName.getItems().addAll(listStudentName);
+            listViewStudentNameFinal.setItems(listViewStudentName.getItems());
         });
 
     }
@@ -653,8 +721,8 @@ public class Main extends Application {
                 if (localTimeFrom == null) {
                     for (Map<String, String> log : moodleLogsProcessing.getLogs()) {
                         if (observableListStudentName.contains(log.get("Name")) && observableListLogContext.contains(log.get("Event context")) && observableListLogEvent.contains(log.get("Event name"))) {
-                            String[] logArray = log.get("Time").split(" ");
                             DateTimeFormatter dateTimeFormatter;
+                            String[] logArray = log.get("Time").split(" ");
                             if (logArray[0].length() == 9) {
                                 dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy");
                             }
@@ -764,9 +832,33 @@ public class Main extends Application {
                     dataMapEventContext.put(log.getEventContext(), 1);
                 }
             }
-            for (String key : dataMapEventContext.keySet()) {
-                dataSeriesEventContext.getData().add(new XYChart.Data(key, dataMapEventContext.get(key)));
+            if (dataMapEventContext.keySet().size() > 30) {
+                List<String> mapKeyEventContext = new ArrayList<>();
+                List<Integer> mapValueEventContext = new ArrayList<>();
+                for (String key : dataMapEventContext.keySet()) {
+                    mapKeyEventContext.add(key);
+                    mapValueEventContext.add(dataMapEventContext.get(key));
+                }
+                List<Integer> sortedMapValueEventContext = new ArrayList<>(mapValueEventContext);
+                Collections.sort(sortedMapValueEventContext);
+                while (mapKeyEventContext.size() > 30) {
+                    int remove = sortedMapValueEventContext.get(0);
+                    int index = mapValueEventContext.indexOf(remove);
+                    mapKeyEventContext.remove(index);
+                    mapValueEventContext.remove(index);
+                    sortedMapValueEventContext.remove(0);
+                }
+                for (int i = 0; i < 30; i++) {
+                    dataSeriesEventContext.getData().add(new XYChart.Data(mapKeyEventContext.get(i), mapValueEventContext.get(i)));
+                }
             }
+            else {
+                for (String key : dataMapEventContext.keySet()) {
+                    dataSeriesEventContext.getData().add(new XYChart.Data(key, dataMapEventContext.get(key)));
+                }
+            }
+
+
             barChartEventContext.setMinWidth(800);
             barChartEventContext.getData().add(dataSeriesEventContext);
         });
