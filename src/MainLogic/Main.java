@@ -19,7 +19,12 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -40,7 +45,7 @@ public class Main extends Application {
     private ListView<String> listViewStudentNameFinal = new ListView<>();
     private ListView<String> listViewStudentName = new ListView<>();
     private ListView<String> listViewStudentGroup = new ListView<>();
-    private TableView tableViewSelectedData = new TableView();
+    private TableView<Log> tableViewSelectedData = new TableView<>();
     private TableView tableViewSelectedStudentsGrades = new TableView();
     private ObservableList<String> observableListLogContext = FXCollections.observableArrayList();
     private ObservableList<String> observableListLogEvent = FXCollections.observableArrayList();
@@ -56,7 +61,7 @@ public class Main extends Application {
     private CategoryAxis xAxisVisitsPerWeek = new CategoryAxis();
     private CategoryAxis xAxisVisitsPerDay = new CategoryAxis();
     private CategoryAxis xAxisVisitsPerHour = new CategoryAxis();
-
+    private CategoryAxis xAxisCorrelationBetweenLogsAndGrades = new CategoryAxis();
     private NumberAxis yAxisEventName = new NumberAxis();
     private NumberAxis yAxisEventContext = new NumberAxis();
     private NumberAxis yAxisStudentGroup = new NumberAxis();
@@ -64,7 +69,7 @@ public class Main extends Application {
     private NumberAxis yAxisVisitsPerWeek = new NumberAxis();
     private NumberAxis yAxisVisitsPerDay = new NumberAxis();
     private NumberAxis yAxisVisitsPerHour = new NumberAxis();
-
+    private NumberAxis yAxisCorrelationBetweenLogsAndGrades = new NumberAxis();
     private BarChart barChartEventName = new BarChart(yAxisEventName, xAxisEventName);
     private BarChart barChartEventContext = new BarChart(yAxisEventContext, xAxisEventContext);
     private BarChart barChartStudentGroup = new BarChart(xAxisStudentGroup, yAxisStudentGroup);
@@ -72,6 +77,7 @@ public class Main extends Application {
     private BarChart barChartVisitsPerWeek = new BarChart(xAxisVisitsPerWeek, yAxisVisitsPerWeek);
     private BarChart barChartVisitsPerDay = new BarChart(xAxisVisitsPerDay, yAxisVisitsPerDay);
     private BarChart barChartVisitsPerHour = new BarChart(xAxisVisitsPerHour, yAxisVisitsPerHour);
+    private BarChart barChartCorrelationBetweenLogsAndGrades = new BarChart(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
 
     public static void main(String[] args) {
         launch(args);
@@ -107,6 +113,7 @@ public class Main extends Application {
         Tab tabVisitsPerWeek = new Tab("Külastused nädalati ");
         Tab tabVisitsPerDay = new Tab("Külastused päeviti ");
         Tab tabVisitsPerHour = new Tab("Külastused tunniti ");
+        Tab tabCorrelatonBetweenLogsAndGrades = new Tab("Hinnete ja logide korrelatsoon");
         // Make all tabs not closable
         tabAllSelectedData.setClosable(false);
         tabEventContext.setClosable(false);
@@ -117,7 +124,8 @@ public class Main extends Application {
         tabVisitsPerWeek.setClosable(false);
         tabVisitsPerDay.setClosable(false);
         tabVisitsPerHour.setClosable(false);
-        // All rhe used GridPanes
+        tabCorrelatonBetweenLogsAndGrades.setClosable(false);
+        // All the used GridPanes
         GridPane gridPaneMainView = new GridPane();
         GridPane gridPaneEventContext = new GridPane();
         GridPane gridPaneEventName = new GridPane();
@@ -133,6 +141,7 @@ public class Main extends Application {
         GridPane gridPaneTabVisitsPerWeek = new GridPane();
         GridPane gridPaneTabVisitsPerDay = new GridPane();
         GridPane gridPaneTabVisitsPerHour = new GridPane();
+        GridPane gridPaneTabCorrelationBetweenLogsAndGrades = new GridPane();
         GridPane gridPaneTabPane = new GridPane();
         // All the used Labels
         Label labelStudent = new Label("Õpilaste andmed (.xls) ");
@@ -162,7 +171,16 @@ public class Main extends Application {
         Button buttonGoBackToChooseStudentName = new Button("Tagasi");
         Button buttonRemoveDateAndTime = new Button("Tühjenda väljad");
         Button buttonGoBackToTimeFrame = new Button("Tagasi");
-        // SearchView
+        Button saveBarChartEventContext = new Button("Salvesta graaf");
+        Button saveBarChartEventName = new Button("Salvesta graaf");
+        Button saveBarChartStudentGroup = new Button("Salvesta graaf");
+        Button saveBarChartStudentName = new Button("Salvesta graaf");
+        Button saveBarChartVisitsPerWeek = new Button("Salvesta graaf");
+        Button saveBarChartVisitsPerDay = new Button("Salvesta graaf");
+        Button saveBarChartVisitsPerHour = new Button("Salvesta graaf");
+        Button saveTableViewGradeData = new Button("Salvesta tabel");
+        Button saveTableViewLogData = new Button("Salvesta tabel");
+        Button saveCorrelationBetweenLogsAndGrades = new Button("Salvesta graaf");
         // Making ListViews and TableView selection models to multiple
         listViewLogContext.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         listViewLogEvent.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
@@ -287,11 +305,11 @@ public class Main extends Application {
             choiceBoxTimeToMinutes.getItems().add(Integer.toString(i));
         }
         // Creating the table for all the selected information
-        TableColumn<String, Log> columnLogTime = new TableColumn<>("Aeg");
-        TableColumn<String, Log> columnStudentName = new TableColumn<>("Nimi");
-        TableColumn<String, Log> columnEventContext = new TableColumn<>("Sündmuse kontekst");
-        TableColumn<String, Log> columnEventName = new TableColumn<>("Sündmuse nimi");
-        TableColumn<String, Log> columnStudentGroup = new TableColumn<>("Rühm");
+        TableColumn<Log, String> columnLogTime = new TableColumn<>("Aeg");
+        TableColumn<Log, String> columnStudentName = new TableColumn<>("Nimi");
+        TableColumn<Log, String> columnEventContext = new TableColumn<>("Sündmuse kontekst");
+        TableColumn<Log, String> columnEventName = new TableColumn<>("Sündmuse nimi");
+        TableColumn<Log, String> columnStudentGroup = new TableColumn<>("Rühm");
         columnLogTime.setMinWidth(100);
         columnStudentName.setMinWidth(115);
         columnEventContext.setMinWidth(275);
@@ -359,16 +377,40 @@ public class Main extends Application {
         gridPaneTimeFrame.add(buttonRemoveDateAndTime, 0, 4);
         gridPaneTimeFrame.setVgap(15);
         gridPaneTimeFrame.setHgap(15);
+        gridPaneTabAllSelectedData.setVgap(15);
+        gridPaneTabStudentGrades.setVgap(15);
+        gridPaneTabAllSelectedData.setVgap(15);
+        gridPaneTabEventName.setVgap(15);
+        gridPaneTabEventContext.setVgap(15);
+        gridPaneTabStudentGroup.setVgap(15);
+        gridPaneTabStudentName.setVgap(15);
+        gridPaneTabStudentGrades.setVgap(15);
+        gridPaneTabVisitsPerWeek.setVgap(15);
+        gridPaneTabVisitsPerDay.setVgap(15);
+        gridPaneTabVisitsPerHour.setVgap(15);
+        gridPaneTabCorrelationBetweenLogsAndGrades.setVgap(15);
         gridPaneTabAllSelectedData.add(tableViewSelectedData, 0, 0, 2, 1);
         gridPaneTabEventName.add(barChartEventName, 0, 0);
         gridPaneTabEventContext.add(barChartEventContext, 0, 0);
         gridPaneTabStudentGroup.add(barChartStudentGroup, 0, 0);
         gridPaneTabStudentName.add(barChartStudentName, 0, 0);
         gridPaneTabStudentGrades.add(tableViewSelectedStudentsGrades, 0, 0 ,2, 1);
-        gridPaneTabPane.add(buttonGoBackToTimeFrame, 0, 1);
         gridPaneTabVisitsPerWeek.add(barChartVisitsPerWeek, 0, 0);
         gridPaneTabVisitsPerDay.add(barChartVisitsPerDay, 0, 0);
         gridPaneTabVisitsPerHour.add(barChartVisitsPerHour, 0, 0);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(barChartCorrelationBetweenLogsAndGrades, 0, 0);
+        gridPaneTabAllSelectedData.add(saveTableViewLogData, 0, 1);
+        gridPaneTabEventName.add(saveBarChartEventName, 0, 1);
+        gridPaneTabEventContext.add(saveBarChartEventContext, 0, 1);
+        gridPaneTabStudentGroup.add(saveBarChartStudentGroup, 0, 1);
+        gridPaneTabStudentName.add(saveBarChartStudentName, 0, 1);
+        gridPaneTabStudentGrades.add(saveTableViewGradeData, 0, 1);
+        gridPaneTabVisitsPerWeek.add(saveBarChartVisitsPerWeek, 0, 1);
+        gridPaneTabVisitsPerDay.add(saveBarChartVisitsPerDay, 0, 1);
+        gridPaneTabVisitsPerHour.add(saveBarChartVisitsPerHour, 0, 1);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(saveCorrelationBetweenLogsAndGrades, 0, 1);
+        gridPaneTabPane.add(buttonGoBackToTimeFrame, 0, 1);
+        gridPaneTabPane.setVgap(15);
         // Add elements to Tabs
         tabAllSelectedData.setContent(gridPaneTabAllSelectedData);
         tabEventContext.setContent(gridPaneTabEventContext);
@@ -386,7 +428,7 @@ public class Main extends Application {
         titledPaneStudentGroups.setContent(gridPaneStudentGroups);
         titledPaneStudentName.setContent(gridPaneStudentName);
         titledPaneTimeFrame.setContent(gridPaneTimeFrame);
-        tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContext, tabEventName, tabStudentName, tabStudentGroup, tabStudentGrades, tabVisitsPerWeek, tabVisitsPerDay, tabVisitsPerHour);
+        tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContext, tabEventName, tabStudentName, tabStudentGroup, tabStudentGrades, tabVisitsPerWeek, tabVisitsPerDay, tabVisitsPerHour, tabCorrelatonBetweenLogsAndGrades);
         // GridPane connected with TabPane
         gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);;
         // Creating the new scenes
@@ -676,6 +718,66 @@ public class Main extends Application {
             choiceBoxTimeFromMinutes.setValue(null);
             choiceBoxTimeToHours.setValue(null);
             choiceBoxTimeToMinutes.setValue(null);
+        });
+        // Exporting tables and graphs
+        saveTableViewLogData.setOnAction(e -> {
+            System.out.println("Save");
+            Workbook workbook = new HSSFWorkbook();
+            Sheet spreadsheet = workbook.createSheet("table");
+            Row row = spreadsheet.createRow(0);
+
+            for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getText());
+            }
+
+            for (int i = 0; i < tableViewSelectedData.getItems().size(); i++) {
+                row = spreadsheet.createRow(i + 1);
+                for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
+                    if(tableViewSelectedData.getColumns().get(j).getCellData(i) != null) {
+                        row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getCellData(i).toString());
+                    }
+                    else {
+                        row.createCell(j).setCellValue("");
+                    }
+                }
+            }
+
+            FileOutputStream fileOut;
+            try {
+                fileOut = new FileOutputStream("workbook.xls");
+                workbook.write(fileOut);
+                fileOut.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.out.println("Error");
+            }
+        });
+        saveTableViewGradeData.setOnAction(e -> {
+
+        });
+        saveBarChartEventContext.setOnAction(e -> {
+
+        });
+        saveBarChartEventName.setOnAction(e -> {
+
+        });
+        saveBarChartStudentGroup.setOnAction(e -> {
+
+        });
+        saveBarChartStudentName.setOnAction(e -> {
+
+        });
+        saveBarChartVisitsPerWeek.setOnAction(e -> {
+
+        });
+        saveBarChartVisitsPerDay.setOnAction(e -> {
+
+        });
+        saveBarChartVisitsPerDay.setOnAction(e -> {
+
+        });
+        saveCorrelationBetweenLogsAndGrades.setOnAction(e -> {
+
         });
         // Finalizing the Stage
         stage.setScene(sceneMainView);
