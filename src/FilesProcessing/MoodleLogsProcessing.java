@@ -53,6 +53,10 @@ public class MoodleLogsProcessing {
     private void addData(String[] log) {
         Map<String, String> oneLog = new HashMap<>();
         List<String> data = new ArrayList<>();
+        if (log[3].startsWith("\"")) {
+            log[3] = log[3].replaceFirst("\"", "");
+            log[3] = log[3].substring(0, log[3].length()-1);
+        }
         data.add(log[0]);
         data.add(log[1]);
         data.add(log[3]);

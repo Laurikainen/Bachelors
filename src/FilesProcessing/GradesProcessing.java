@@ -55,6 +55,9 @@ public class GradesProcessing {
                     columnNumber ++;
                 }
                 grades.add(grade);
+                if (student.size() > 0) {
+                    studentGrades.add(student);
+                }
                 rowNumber ++;
             }
         }
@@ -73,6 +76,7 @@ public class GradesProcessing {
     public void clearAllGradeData() {
         grades = new ArrayList<>();
         columnNames = new ArrayList<>();
+        studentGrades =  new ArrayList<>();
     }
 
     public List<Map<String, String>> getGrades() {

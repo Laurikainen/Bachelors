@@ -19,6 +19,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.StringConverter;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -46,7 +47,7 @@ public class Main extends Application {
     private ListView<String> listViewStudentName = new ListView<>();
     private ListView<String> listViewStudentGroup = new ListView<>();
     private TableView<Log> tableViewSelectedData = new TableView<>();
-    private TableView tableViewSelectedStudentsGrades = new TableView();
+    private TableView<List<StringProperty>> tableViewSelectedStudentsGrades = new TableView<>();
     private ObservableList<String> observableListLogContext = FXCollections.observableArrayList();
     private ObservableList<String> observableListLogEvent = FXCollections.observableArrayList();
     private ObservableList<String> observableListStudentName = FXCollections.observableArrayList();
@@ -295,6 +296,33 @@ public class Main extends Application {
         ChoiceBox<String> choiceBoxTimeFromMinutes = new ChoiceBox<>();
         ChoiceBox<String> choiceBoxTimeToHours = new ChoiceBox<>();
         ChoiceBox<String> choiceBoxTimeToMinutes = new ChoiceBox<>();
+        // Set DatePicker format to dd.MM.yyyy
+        StringConverter<LocalDate> stringConverter = new StringConverter<>()
+        {
+            private DateTimeFormatter dateTimeFormatter=DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+            @Override
+            public String toString(LocalDate localDate)
+            {
+                if(localDate==null)
+                    return "";
+                return dateTimeFormatter.format(localDate);
+            }
+
+            @Override
+            public LocalDate fromString(String dateString)
+            {
+                if(dateString==null || dateString.trim().isEmpty())
+                {
+                    return null;
+                }
+                return LocalDate.parse(dateString,dateTimeFormatter);
+            }
+        };
+        datePickerFrom.setConverter(stringConverter);
+        datePickerTo.setConverter(stringConverter);
+        datePickerFrom.setPromptText("dd.MM.yyyy");
+        datePickerTo.setPromptText("dd.MM.yyyy");
         // Initializing ChoiceBoxes
         for (int i = 0; i<25; i++) {
             choiceBoxTimeFromHours.getItems().add(Integer.toString(i));
@@ -1067,21 +1095,12 @@ public class Main extends Application {
             for (List<String> grade : gradesProcessing.getStudentGrades()) {
                 List<StringProperty> firstRow = new ArrayList<>();
                 for (int i = 0; i < grade.size(); i++) {
+                    System.out.println(grade.get(i));
                     firstRow.add(i, new SimpleStringProperty(grade.get(i)));
                 }
                 data.add(firstRow);
             }
             tableViewSelectedStudentsGrades.setItems(data);
-
-//                for (String studentGradeColumn : gradesProcessing.getColumnNames()) {
-//                    TableColumn<String, List<String>> columnStudentGrade = new TableColumn<>(studentGradeColumn.replace(" (Punktid)", ""));
-//                    columnStudentGrade.setCellValueFactory(new PropertyValueFactory<>(studentGradeColumn.replace(" (Punktid)", "")));
-//                    tableViewSelectedStudentsGrades.getColumns().add(columnStudentGrade);
-//                }
-//                for (List<String> grade : gradesProcessing.getStudentGrades()) {
-//                    tableViewSelectedStudentsGrades.getItems().add(grade);
-//
-//                }
         });
     }
 
