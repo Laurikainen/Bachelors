@@ -82,19 +82,11 @@ public class Main extends Application {
     private BarChart<String, Number> barChartVisitsPerDay = new BarChart<>(xAxisVisitsPerDay, yAxisVisitsPerDay);
     private BarChart<String, Number> barChartVisitsPerHour = new BarChart<>(xAxisVisitsPerHour, yAxisVisitsPerHour);
     private BarChart<String, Number> barChartCorrelationBetweenLogsAndGrades = new BarChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
-    private List<Integer> mapValueEventName;
-    private List<String> mapKeyEventName;
-    private List<String> mapKeyEventContext;
-    private List<Integer> mapValueEventContext;
-
-    private Map<String, Integer> dataMapStudentGroup;
-    private Map<String, Integer> dataMapStudentName;
-
-    private List<String> time;
-    private List<Integer> timeOccurrence;
-    private List<Integer> weekOccurrences;
-    private List<String> day;
-    private List<Integer> dayOccurrences;
+    private List<Integer> mapValueEventName, mapValueEventContext;
+    private List<String> mapKeyEventName, mapKeyEventContext;
+    private Map<String, Integer> dataMapStudentGroup, dataMapStudentName;
+    private List<String> time, day;
+    private List<Integer> weekOccurrences, dayOccurrences, timeOccurrences;
 
     public static void main(String[] args) {
         launch(args);
@@ -790,8 +782,10 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("Logiandmed.xls");
                 workbook.write(fileOut);
                 fileOut.close();
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveTableViewGradeData.setOnAction(e -> {
@@ -816,8 +810,10 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("Hinneteandmed.xls");
                 workbook.write(fileOut);
                 fileOut.close();
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartEventContext.setOnAction(e -> {
@@ -842,8 +838,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventContext.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartEventName.setOnAction(e -> {
@@ -868,8 +866,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventName.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartStudentGroup.setOnAction(e -> {
@@ -900,8 +900,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentGroup.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartStudentName.setOnAction(e -> {
@@ -932,8 +934,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentName.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartVisitsPerWeek.setOnAction(e -> {
@@ -956,8 +960,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerWeek.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartVisitsPerDay.setOnAction(e -> {
@@ -982,8 +988,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerDay.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartVisitsPerHour.setOnAction(e -> {
@@ -998,7 +1006,7 @@ public class Main extends Application {
             String[] names = time.toArray(new String[0]);
             for (int i = 0; i < numberOfEventContext; i++) {
                 worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
-                worksheet.getCell(i + 1, 1).setValue(timeOccurrence.get(i));
+                worksheet.getCell(i + 1, 1).setValue(timeOccurrences.get(i));
             }
             // Set header row and formatting.
             worksheet.getCell(0, 0).setValue("Tunnid");
@@ -1008,8 +1016,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerHour.xlsx");
+                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
+                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveCorrelationBetweenLogsAndGrades.setOnAction(e -> {
@@ -1332,86 +1342,86 @@ public class Main extends Application {
             XYChart.Series<String, Number> dataSeriesVisitsPerHour = new XYChart.Series<>();
             dataSeriesVisitsPerHour.setName("Kui palju külastatakse Moodle't erinetave ajavahemike jooksul.");
             time = new ArrayList<>();
-            timeOccurrence = new ArrayList<>();
+            timeOccurrences = new ArrayList<>();
             time.add("0-1");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("2-3");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("4-5");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("6-7");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("8-9");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("10-11");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("12-13");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("14-15");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("16-17");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("18-19");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("20-21");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             time.add("22-23");
-            timeOccurrence.add(0);
+            timeOccurrences.add(0);
             for (Log log : filteredResults) {
                 String[] logArray = log.getTime().split(" ");
                 DateTimeFormatter dateTimeFormatterTime = DateTimeFormatter.ofPattern("HH.mm");
                 LocalTime logTime = LocalTime.parse(logArray[1], dateTimeFormatterTime);
                 if (logTime.getHour() == 0 || logTime.getHour() == 1) {
-                    timeOccurrence.add(0, timeOccurrence.get(0) + 1);
-                    timeOccurrence.remove(1);
+                    timeOccurrences.add(0, timeOccurrences.get(0) + 1);
+                    timeOccurrences.remove(1);
                 }
                 else if (logTime.getHour() == 2 || logTime.getHour() == 3) {
-                    timeOccurrence.add(1, timeOccurrence.get(1) + 1);
-                    timeOccurrence.remove(2);
+                    timeOccurrences.add(1, timeOccurrences.get(1) + 1);
+                    timeOccurrences.remove(2);
                 }
                 else if (logTime.getHour() == 4 || logTime.getHour() == 5) {
-                    timeOccurrence.add(2, timeOccurrence.get(2) + 1);
-                    timeOccurrence.remove(3);
+                    timeOccurrences.add(2, timeOccurrences.get(2) + 1);
+                    timeOccurrences.remove(3);
                 }
                 else if (logTime.getHour() == 6 || logTime.getHour() == 7) {
-                    timeOccurrence.add(3, timeOccurrence.get(3) + 1);
-                    timeOccurrence.remove(4);
+                    timeOccurrences.add(3, timeOccurrences.get(3) + 1);
+                    timeOccurrences.remove(4);
                 }
                 else if (logTime.getHour() == 8 || logTime.getHour() == 9) {
-                    timeOccurrence.add(4, timeOccurrence.get(4) + 1);
-                    timeOccurrence.remove(5);
+                    timeOccurrences.add(4, timeOccurrences.get(4) + 1);
+                    timeOccurrences.remove(5);
                 }
                 else if (logTime.getHour() == 10 || logTime.getHour() == 11) {
-                    timeOccurrence.add(5, timeOccurrence.get(5) + 1);
-                    timeOccurrence.remove(6);
+                    timeOccurrences.add(5, timeOccurrences.get(5) + 1);
+                    timeOccurrences.remove(6);
                 }
                 else if (logTime.getHour() == 12 || logTime.getHour() == 13) {
-                    timeOccurrence.add(6, timeOccurrence.get(6) + 1);
-                    timeOccurrence.remove(7);
+                    timeOccurrences.add(6, timeOccurrences.get(6) + 1);
+                    timeOccurrences.remove(7);
                 }
                 else if (logTime.getHour() == 14 || logTime.getHour() == 15) {
-                    timeOccurrence.add(7, timeOccurrence.get(7) + 1);
-                    timeOccurrence.remove(8);
+                    timeOccurrences.add(7, timeOccurrences.get(7) + 1);
+                    timeOccurrences.remove(8);
                 }
                 else if (logTime.getHour() == 16 || logTime.getHour() == 17) {
-                    timeOccurrence.add( 8, timeOccurrence.get(8) + 1);
-                    timeOccurrence.remove(9);
+                    timeOccurrences.add( 8, timeOccurrences.get(8) + 1);
+                    timeOccurrences.remove(9);
                 }
                 else if (logTime.getHour() == 18 || logTime.getHour() == 19) {
-                    timeOccurrence.add(9, timeOccurrence.get(9) + 1);
-                    timeOccurrence.remove(10);
+                    timeOccurrences.add(9, timeOccurrences.get(9) + 1);
+                    timeOccurrences.remove(10);
                 }
                 else if (logTime.getHour() == 20 || logTime.getHour() == 21) {
-                    timeOccurrence.add(10, timeOccurrence.get(10) + 1);
-                    timeOccurrence.remove(11);
+                    timeOccurrences.add(10, timeOccurrences.get(10) + 1);
+                    timeOccurrences.remove(11);
                 }
                 else {
-                    timeOccurrence.add( 11, timeOccurrence.get(11) + 1);
-                    timeOccurrence.remove(12);
+                    timeOccurrences.add( 11, timeOccurrences.get(11) + 1);
+                    timeOccurrences.remove(12);
                 }
             }
             for (int i = 0; i < time.size(); i++) {
-                dataSeriesVisitsPerHour.getData().add(new XYChart.Data<>(time.get(i), timeOccurrence.get(i)));
+                dataSeriesVisitsPerHour.getData().add(new XYChart.Data<>(time.get(i), timeOccurrences.get(i)));
             }
             barChartVisitsPerHour.setMinWidth(900);
             barChartVisitsPerHour.getData().add(dataSeriesVisitsPerHour);
@@ -1510,5 +1520,21 @@ public class Main extends Application {
             barChartVisitsPerDay.setMinWidth(900);
             barChartVisitsPerDay.getData().add(dataSeriesVisitsPerDay);
         });
+    }
+
+    private void displayAlert(String title, String header, String content) {
+        Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
+        alertTimeHoursFromAfterTimeHoursTo.setTitle(title);
+        alertTimeHoursFromAfterTimeHoursTo.setHeaderText(header);
+        alertTimeHoursFromAfterTimeHoursTo.setContentText(content);
+        alertTimeHoursFromAfterTimeHoursTo.show();
+    }
+
+    private void displayInformation(String title, String header, String content) {
+        Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.INFORMATION);
+        alertTimeHoursFromAfterTimeHoursTo.setTitle(title);
+        alertTimeHoursFromAfterTimeHoursTo.setHeaderText(header);
+        alertTimeHoursFromAfterTimeHoursTo.setContentText(content);
+        alertTimeHoursFromAfterTimeHoursTo.show();
     }
 }
