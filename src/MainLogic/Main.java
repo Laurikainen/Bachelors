@@ -26,12 +26,15 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.WeekFields;
 import java.util.*;
+import com.gembox.spreadsheet.*;
+import com.gembox.spreadsheet.charts.*;
 
 public class Main extends Application {
 
@@ -79,6 +82,19 @@ public class Main extends Application {
     private BarChart<String, Number> barChartVisitsPerDay = new BarChart<>(xAxisVisitsPerDay, yAxisVisitsPerDay);
     private BarChart<String, Number> barChartVisitsPerHour = new BarChart<>(xAxisVisitsPerHour, yAxisVisitsPerHour);
     private BarChart<String, Number> barChartCorrelationBetweenLogsAndGrades = new BarChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
+    private List<Integer> mapValueEventName;
+    private List<String> mapKeyEventName;
+    private List<String> mapKeyEventContext;
+    private List<Integer> mapValueEventContext;
+
+    private Map<String, Integer> dataMapStudentGroup;
+    private Map<String, Integer> dataMapStudentName;
+
+    private List<String> time;
+    private List<Integer> timeOccurrence;
+    private List<Integer> weekOccurrences;
+    private List<String> day;
+    private List<Integer> dayOccurrences;
 
     public static void main(String[] args) {
         launch(args);
@@ -729,6 +745,10 @@ public class Main extends Application {
             barChartEventContext.getData().clear();
             barChartStudentGroup.getData().clear();
             barChartStudentName.getData().clear();
+            barChartVisitsPerWeek.getData().clear();
+            barChartVisitsPerDay.getData().clear();
+            barChartVisitsPerHour.getData().clear();
+            barChartCorrelationBetweenLogsAndGrades.getData().clear();
             tableViewSelectedData.setItems(FXCollections.observableArrayList());
             tableViewSelectedStudentsGrades.setItems(FXCollections.observableArrayList());
             stage.setScene(sceneTimeFrame);
@@ -752,11 +772,9 @@ public class Main extends Application {
             Workbook workbook = new HSSFWorkbook();
             Sheet spreadsheet = workbook.createSheet("Logid");
             Row row = spreadsheet.createRow(0);
-
             for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
                 row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getText());
             }
-
             for (int i = 0; i < tableViewSelectedData.getItems().size(); i++) {
                 row = spreadsheet.createRow(i + 1);
                 for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
@@ -777,28 +795,222 @@ public class Main extends Application {
             }
         });
         saveTableViewGradeData.setOnAction(e -> {
-
+            Workbook workbook = new HSSFWorkbook();
+            Sheet spreadsheet = workbook.createSheet("Hinded");
+            Row row = spreadsheet.createRow(0);
+            for (int j = 0; j < tableViewSelectedStudentsGrades.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewSelectedStudentsGrades.getColumns().get(j).getText());
+            }
+            for (int i = 0; i < tableViewSelectedStudentsGrades.getItems().size(); i++) {
+                row = spreadsheet.createRow(i + 1);
+                for (int j = 0; j < tableViewSelectedStudentsGrades.getColumns().size(); j++) {
+                    if(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i) != null) {
+                        row.createCell(j).setCellValue(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i).toString());
+                    }
+                    else {
+                        row.createCell(j).setCellValue("");
+                    }
+                }
+            }
+            try {
+                FileOutputStream fileOut = new FileOutputStream("Hinneteandmed.xls");
+                workbook.write(fileOut);
+                fileOut.close();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartEventContext.setOnAction(e -> {
-
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartEventContext");
+            int numberOfEventContext = mapKeyEventContext.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = mapKeyEventContext.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(mapValueEventContext.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Sündmuse kontekst");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartEventContext.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartEventName.setOnAction(e -> {
-
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartEventName");
+            int numberOfEventContext = mapKeyEventName.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = mapKeyEventName.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(mapValueEventName.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Sündmuse nimi");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartEventName.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartStudentGroup.setOnAction(e -> {
-
+            List<Integer> mapValueStudentGroup = new ArrayList<>();
+            List<String> mapKeyStudentGroup = new ArrayList<>();
+            for (String key : dataMapStudentGroup.keySet()) {
+                mapKeyStudentGroup.add(key);
+                mapValueStudentGroup.add(dataMapStudentGroup.get(key));
+            }
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartStudentGroup");
+            int numberOfEventContext = mapKeyStudentGroup.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = mapKeyStudentGroup.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(mapValueStudentGroup.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Grupi nimi");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartStudentGroup.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartStudentName.setOnAction(e -> {
-
+            List<Integer> mapValueStudentName = new ArrayList<>();
+            List<String> mapKeyStudentName = new ArrayList<>();
+            for (String key : dataMapStudentName.keySet()) {
+                mapKeyStudentName.add(key);
+                mapValueStudentName.add(dataMapStudentName.get(key));
+            }
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartStudentName");
+            int numberOfEventContext = mapKeyStudentName.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = mapKeyStudentName.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(mapValueStudentName.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Õpilase nimi");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartStudentName.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartVisitsPerWeek.setOnAction(e -> {
-
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerWeek");
+            int numberOfEventContext = weekOccurrences.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(i+1);
+                worksheet.getCell(i + 1, 1).setValue(weekOccurrences.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Nädalad");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartVisitsPerWeek.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveBarChartVisitsPerDay.setOnAction(e -> {
-
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerDay");
+            int numberOfEventContext = day.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = day.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(dayOccurrences.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Päevad");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartVisitsPerDay.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
-        saveBarChartVisitsPerDay.setOnAction(e -> {
-
+        saveBarChartVisitsPerHour.setOnAction(e -> {
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerHour");
+            int numberOfEventContext = time.size();
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
+            // Add data which is used by the Excel chart.
+            String[] names = time.toArray(new String[0]);
+            for (int i = 0; i < numberOfEventContext; i++) {
+                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
+                worksheet.getCell(i + 1, 1).setValue(timeOccurrence.get(i));
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Tunnid");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartVisitsPerHour.xlsx");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
         });
         saveCorrelationBetweenLogsAndGrades.setOnAction(e -> {
 
@@ -968,8 +1180,8 @@ public class Main extends Application {
                 }
             }
             if (dataMapEventName.keySet().size() > 15) {
-                List<Integer> mapValueEventName = new ArrayList<>();
-                List<String> mapKeyEventName = new ArrayList<>();
+                mapValueEventName = new ArrayList<>();
+                mapKeyEventName = new ArrayList<>();
                 for (String key : dataMapEventName.keySet()) {
                     mapValueEventName.add(dataMapEventName.get(key));
                     mapKeyEventName.add(key);
@@ -988,8 +1200,14 @@ public class Main extends Application {
                 }
             }
             else {
+                mapValueEventName = new ArrayList<>();
+                mapKeyEventName = new ArrayList<>();
                 for (String key : dataMapEventName.keySet()) {
-                    dataSeriesEventName.getData().add(new XYChart.Data<>(dataMapEventName.get(key), key));
+                    mapValueEventName.add(dataMapEventName.get(key));
+                    mapKeyEventName.add(key);
+                }
+                for (int i = 0; i < dataMapEventName.keySet().size(); i++) {
+                    dataSeriesEventName.getData().add(new XYChart.Data<>(mapValueEventName.get(i), mapKeyEventName.get(i)));
                 }
             }
             barChartEventName.setMinWidth(900);
@@ -1010,8 +1228,8 @@ public class Main extends Application {
                 }
             }
             if (dataMapEventContext.keySet().size() > 15) {
-                List<String> mapKeyEventContext = new ArrayList<>();
-                List<Integer> mapValueEventContext = new ArrayList<>();
+                mapKeyEventContext = new ArrayList<>();
+                mapValueEventContext = new ArrayList<>();
                 for (String key : dataMapEventContext.keySet()) {
                     mapKeyEventContext.add(key);
                     mapValueEventContext.add(dataMapEventContext.get(key));
@@ -1030,8 +1248,14 @@ public class Main extends Application {
                 }
             }
             else {
+                mapKeyEventContext = new ArrayList<>();
+                mapValueEventContext = new ArrayList<>();
                 for (String key : dataMapEventContext.keySet()) {
-                    dataSeriesEventContext.getData().add(new XYChart.Data<>(dataMapEventContext.get(key), key));
+                    mapKeyEventContext.add(key);
+                    mapValueEventContext.add(dataMapEventContext.get(key));
+                }
+                for (int i = 0; i < dataMapEventContext.keySet().size(); i++) {
+                    dataSeriesEventContext.getData().add(new XYChart.Data<>(mapValueEventContext.get(i), mapKeyEventContext.get(i)));
                 }
             }
             barChartEventContext.setMinWidth(900);
@@ -1043,7 +1267,7 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentGroup = new XYChart.Series<>();
             dataSeriesStudentGroup.setName("Kui palju iga rühma kohta käivaid kirjeid esineb logides.");
-            Map<String, Integer> dataMapStudentGroup = new HashMap<>();
+            dataMapStudentGroup = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentGroup.containsKey(log.getStudentGroup())) {
                     dataMapStudentGroup.put(log.getStudentGroup(), dataMapStudentGroup.get(log.getStudentGroup()) + 1);
@@ -1063,7 +1287,7 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentName = new XYChart.Series<>();
             dataSeriesStudentName.setName("Kui palju iga õpilase kohta käivaid kirjeid esineb logides.");
-            Map<String, Integer> dataMapStudentName = new HashMap<>();
+            dataMapStudentName = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentName.containsKey(log.getStudentName())) {
                     dataMapStudentName.put(log.getStudentName(), dataMapStudentName.get(log.getStudentName()) + 1);
@@ -1095,7 +1319,6 @@ public class Main extends Application {
             for (List<String> grade : gradesProcessing.getStudentGrades()) {
                 List<StringProperty> firstRow = new ArrayList<>();
                 for (int i = 0; i < grade.size(); i++) {
-                    System.out.println(grade.get(i));
                     firstRow.add(i, new SimpleStringProperty(grade.get(i)));
                 }
                 data.add(firstRow);
@@ -1108,8 +1331,8 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesVisitsPerHour = new XYChart.Series<>();
             dataSeriesVisitsPerHour.setName("Kui palju külastatakse Moodle't erinetave ajavahemike jooksul.");
-            List<String> time = new ArrayList<>();
-            List<Integer> timeOccurrence = new ArrayList<>();
+            time = new ArrayList<>();
+            timeOccurrence = new ArrayList<>();
             time.add("0-1");
             timeOccurrence.add(0);
             time.add("2-3");
@@ -1199,7 +1422,7 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesVisitsPerWeek = new XYChart.Series<>();
             dataSeriesVisitsPerWeek.setName("Kui palju külastatakse Moodle't erinevatel õppenädalatel.");
-            List<Integer> weekOccurrences = new ArrayList<>();
+            weekOccurrences = new ArrayList<>();
             for (int i = 0; i < 52; i++) {
                 weekOccurrences.add(0);
             }
@@ -1226,8 +1449,8 @@ public class Main extends Application {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesVisitsPerDay = new XYChart.Series<>();
             dataSeriesVisitsPerDay.setName("Kui palju külastatakse Moodle't erinevatel päevadel.");
-            List<String> day = new ArrayList<>();
-            List<Integer> dayOccurrences = new ArrayList<>();
+            day = new ArrayList<>();
+            dayOccurrences = new ArrayList<>();
             day.add("E");
             dayOccurrences.add(0);
             day.add("T");
