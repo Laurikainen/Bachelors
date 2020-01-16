@@ -70,14 +70,14 @@ public class Main extends Application {
     private NumberAxis yAxisVisitsPerDay = new NumberAxis();
     private NumberAxis yAxisVisitsPerHour = new NumberAxis();
     private NumberAxis yAxisCorrelationBetweenLogsAndGrades = new NumberAxis();
-    private BarChart barChartEventName = new BarChart(yAxisEventName, xAxisEventName);
-    private BarChart barChartEventContext = new BarChart(yAxisEventContext, xAxisEventContext);
-    private BarChart barChartStudentGroup = new BarChart(xAxisStudentGroup, yAxisStudentGroup);
-    private BarChart barChartStudentName = new BarChart(xAxisStudentName, yAxisStudentName);
-    private BarChart barChartVisitsPerWeek = new BarChart(xAxisVisitsPerWeek, yAxisVisitsPerWeek);
-    private BarChart barChartVisitsPerDay = new BarChart(xAxisVisitsPerDay, yAxisVisitsPerDay);
-    private BarChart barChartVisitsPerHour = new BarChart(xAxisVisitsPerHour, yAxisVisitsPerHour);
-    private BarChart barChartCorrelationBetweenLogsAndGrades = new BarChart(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
+    private BarChart<Number, String> barChartEventName = new BarChart<>(yAxisEventName, xAxisEventName);
+    private BarChart<Number, String> barChartEventContext = new BarChart<>(yAxisEventContext, xAxisEventContext);
+    private BarChart<String, Number> barChartStudentGroup = new BarChart<>(xAxisStudentGroup, yAxisStudentGroup);
+    private BarChart<String, Number> barChartStudentName = new BarChart<>(xAxisStudentName, yAxisStudentName);
+    private BarChart<String, Number> barChartVisitsPerWeek = new BarChart<>(xAxisVisitsPerWeek, yAxisVisitsPerWeek);
+    private BarChart<String, Number> barChartVisitsPerDay = new BarChart<>(xAxisVisitsPerDay, yAxisVisitsPerDay);
+    private BarChart<String, Number> barChartVisitsPerHour = new BarChart<>(xAxisVisitsPerHour, yAxisVisitsPerHour);
+    private BarChart<String, Number> barChartCorrelationBetweenLogsAndGrades = new BarChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
 
     public static void main(String[] args) {
         launch(args);
@@ -430,7 +430,7 @@ public class Main extends Application {
         titledPaneTimeFrame.setContent(gridPaneTimeFrame);
         tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContext, tabEventName, tabStudentName, tabStudentGroup, tabStudentGrades, tabVisitsPerWeek, tabVisitsPerDay, tabVisitsPerHour, tabCorrelatonBetweenLogsAndGrades);
         // GridPane connected with TabPane
-        gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);;
+        gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);
         // Creating the new scenes
         sceneMainView = new Scene(titledPaneMainView, 900, 500);
         sceneLogContext = new Scene(titledPaneEventContext, 900, 500);
@@ -721,9 +721,8 @@ public class Main extends Application {
         });
         // Exporting tables and graphs
         saveTableViewLogData.setOnAction(e -> {
-            System.out.println("Save");
             Workbook workbook = new HSSFWorkbook();
-            Sheet spreadsheet = workbook.createSheet("table");
+            Sheet spreadsheet = workbook.createSheet("Logid");
             Row row = spreadsheet.createRow(0);
 
             for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
@@ -741,15 +740,12 @@ public class Main extends Application {
                     }
                 }
             }
-
-            FileOutputStream fileOut;
             try {
-                fileOut = new FileOutputStream("workbook.xls");
+                FileOutputStream fileOut = new FileOutputStream("Logiandmed.xls");
                 workbook.write(fileOut);
                 fileOut.close();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                System.out.println("Error");
             }
         });
         saveTableViewGradeData.setOnAction(e -> {
@@ -933,7 +929,7 @@ public class Main extends Application {
 
     private void displayBarChartEventName() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesEventName = new XYChart.Series();
+            XYChart.Series<Number, String> dataSeriesEventName = new XYChart.Series<>();
             dataSeriesEventName.setName("Kui palju sündmuse nime kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapEventName = new HashMap<>();
             for (Log log : filteredResults) {
@@ -960,12 +956,12 @@ public class Main extends Application {
                     mapKeyEventName.remove(index);
                 }
                 for (int i = 0; i < 15; i++) {
-                    dataSeriesEventName.getData().add(new XYChart.Data(mapValueEventName.get(i), mapKeyEventName.get(i)));
+                    dataSeriesEventName.getData().add(new XYChart.Data<>(mapValueEventName.get(i), mapKeyEventName.get(i)));
                 }
             }
             else {
                 for (String key : dataMapEventName.keySet()) {
-                    dataSeriesEventName.getData().add(new XYChart.Data(dataMapEventName.get(key), key));
+                    dataSeriesEventName.getData().add(new XYChart.Data<>(dataMapEventName.get(key), key));
                 }
             }
             barChartEventName.setMinWidth(900);
@@ -975,7 +971,7 @@ public class Main extends Application {
 
     private void displayBarChartEventContext() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesEventContext = new XYChart.Series();
+            XYChart.Series<Number, String> dataSeriesEventContext = new XYChart.Series<>();
             dataSeriesEventContext.setName("Kui palju sündmuse konteksti kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapEventContext = new HashMap<>();
             for (Log log : filteredResults) {
@@ -1002,12 +998,12 @@ public class Main extends Application {
                     sortedMapValueEventContext.remove(0);
                 }
                 for (int i = 0; i < 15; i++) {
-                    dataSeriesEventContext.getData().add(new XYChart.Data(mapValueEventContext.get(i), mapKeyEventContext.get(i)));
+                    dataSeriesEventContext.getData().add(new XYChart.Data<>(mapValueEventContext.get(i), mapKeyEventContext.get(i)));
                 }
             }
             else {
                 for (String key : dataMapEventContext.keySet()) {
-                    dataSeriesEventContext.getData().add(new XYChart.Data(dataMapEventContext.get(key), key));
+                    dataSeriesEventContext.getData().add(new XYChart.Data<>(dataMapEventContext.get(key), key));
                 }
             }
             barChartEventContext.setMinWidth(900);
@@ -1017,7 +1013,7 @@ public class Main extends Application {
 
     private void displayBarChartStudentGroup() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesStudentGroup = new XYChart.Series();
+            XYChart.Series<String, Number> dataSeriesStudentGroup = new XYChart.Series<>();
             dataSeriesStudentGroup.setName("Kui palju iga rühma kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapStudentGroup = new HashMap<>();
             for (Log log : filteredResults) {
@@ -1028,7 +1024,7 @@ public class Main extends Application {
                 }
             }
             for (String key : dataMapStudentGroup.keySet()) {
-                dataSeriesStudentGroup.getData().add(new XYChart.Data(key, dataMapStudentGroup.get(key)));
+                dataSeriesStudentGroup.getData().add(new XYChart.Data<>(key, dataMapStudentGroup.get(key)));
             }
             barChartStudentGroup.setMinWidth(900);
             barChartStudentGroup.getData().add(dataSeriesStudentGroup);
@@ -1037,7 +1033,7 @@ public class Main extends Application {
 
     private void displayBarChartStudentName() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesStudentName = new XYChart.Series();
+            XYChart.Series<String, Number> dataSeriesStudentName = new XYChart.Series<>();
             dataSeriesStudentName.setName("Kui palju iga õpilase kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapStudentName = new HashMap<>();
             for (Log log : filteredResults) {
@@ -1048,7 +1044,7 @@ public class Main extends Application {
                 }
             }
             for (String key : dataMapStudentName.keySet()) {
-                dataSeriesStudentName.getData().add(new XYChart.Data(key, dataMapStudentName.get(key)));
+                dataSeriesStudentName.getData().add(new XYChart.Data<>(key, dataMapStudentName.get(key)));
             }
             barChartStudentName.setMinWidth(900);
             barChartStudentName.getData().add(dataSeriesStudentName);
@@ -1091,7 +1087,7 @@ public class Main extends Application {
 
     private void displayBarChartVisitsPerHour() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesVisitsPerHour = new XYChart.Series();
+            XYChart.Series<String, Number> dataSeriesVisitsPerHour = new XYChart.Series<>();
             dataSeriesVisitsPerHour.setName("Kui palju külastatakse Moodle't erinetave ajavahemike jooksul.");
             List<String> time = new ArrayList<>();
             List<Integer> timeOccurrence = new ArrayList<>();
@@ -1173,7 +1169,7 @@ public class Main extends Application {
                 }
             }
             for (int i = 0; i < time.size(); i++) {
-                dataSeriesVisitsPerHour.getData().add(new XYChart.Data(time.get(i), timeOccurrence.get(i)));
+                dataSeriesVisitsPerHour.getData().add(new XYChart.Data<>(time.get(i), timeOccurrence.get(i)));
             }
             barChartVisitsPerHour.setMinWidth(900);
             barChartVisitsPerHour.getData().add(dataSeriesVisitsPerHour);
@@ -1182,7 +1178,7 @@ public class Main extends Application {
 
     private void displayBarChartVisitsPerWeek() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesVisitsPerWeek = new XYChart.Series();
+            XYChart.Series<String, Number> dataSeriesVisitsPerWeek = new XYChart.Series<>();
             dataSeriesVisitsPerWeek.setName("Kui palju külastatakse Moodle't erinevatel õppenädalatel.");
             List<Integer> weekOccurrences = new ArrayList<>();
             for (int i = 0; i < 52; i++) {
@@ -1200,7 +1196,7 @@ public class Main extends Application {
                 weekOccurrences.remove(weekNumber);
             }
             for (int i = 0; i < weekOccurrences.size(); i++) {
-                dataSeriesVisitsPerWeek.getData().add(new XYChart.Data(String.valueOf(i+1), weekOccurrences.get(i)));
+                dataSeriesVisitsPerWeek.getData().add(new XYChart.Data<>(String.valueOf(i+1), weekOccurrences.get(i)));
             }
             barChartVisitsPerWeek.setMinWidth(900);
             barChartVisitsPerWeek.getData().add(dataSeriesVisitsPerWeek);
@@ -1209,7 +1205,7 @@ public class Main extends Application {
 
     private void displayBarChartVisitsPerDay() {
         Platform.runLater(() -> {
-            XYChart.Series dataSeriesVisitsPerDay = new XYChart.Series();
+            XYChart.Series<String, Number> dataSeriesVisitsPerDay = new XYChart.Series<>();
             dataSeriesVisitsPerDay.setName("Kui palju külastatakse Moodle't erinevatel päevadel.");
             List<String> day = new ArrayList<>();
             List<Integer> dayOccurrences = new ArrayList<>();
@@ -1267,7 +1263,7 @@ public class Main extends Application {
                 }
             }
             for (int i = 0; i < day.size(); i++) {
-                dataSeriesVisitsPerDay.getData().add(new XYChart.Data(day.get(i), dayOccurrences.get(i)));
+                dataSeriesVisitsPerDay.getData().add(new XYChart.Data<>(day.get(i), dayOccurrences.get(i)));
             }
             barChartVisitsPerDay.setMinWidth(900);
             barChartVisitsPerDay.getData().add(dataSeriesVisitsPerDay);
