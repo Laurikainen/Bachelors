@@ -9,14 +9,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.chart.*;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -43,6 +44,12 @@ public class Main extends Application {
     private MoodleLogsProcessing moodleLogsProcessing;
     private StudentInfoProcessing studentInfoProcessing;
     private GradesProcessing gradesProcessing;
+    private List<Integer> mapValueEventName, mapValueEventContext, timeOccurrences;
+    private List<String> mapKeyEventName, mapKeyEventContext, time;
+    private Map<String, Integer> dataMapStudentGroup, dataMapStudentName;
+    private Map<String, Map<String, Integer>> mapHourOccurrencesByEachDay;
+    private Map<Integer, Map<String, Integer>> mapDayOccurrencesByEachWeek;
+    private List<Map<String, Double>> listOfCorrelationData;
     private ListView<String> listViewLogContext = new ListView<>();
     private ListView<String> listViewLogEventFinal = new ListView<>();
     private ListView<String> listViewLogEvent = new ListView<>();
@@ -51,6 +58,9 @@ public class Main extends Application {
     private ListView<String> listViewStudentGroup = new ListView<>();
     private TableView<Log> tableViewSelectedData = new TableView<>();
     private TableView<List<StringProperty>> tableViewSelectedStudentsGrades = new TableView<>();
+    private TableView<List<StringProperty>> tableViewWeekAndDay = new TableView<>();
+    private TableView<List<StringProperty>> tableViewDayAndHour = new TableView<>();
+    private TableView<List<StringProperty>> tableViewCorrelation = new TableView<>();
     private ObservableList<String> observableListLogContext = FXCollections.observableArrayList();
     private ObservableList<String> observableListLogEvent = FXCollections.observableArrayList();
     private ObservableList<String> observableListStudentName = FXCollections.observableArrayList();
@@ -62,31 +72,26 @@ public class Main extends Application {
     private CategoryAxis xAxisEventContext = new CategoryAxis();
     private CategoryAxis xAxisStudentGroup = new CategoryAxis();
     private CategoryAxis xAxisStudentName = new CategoryAxis();
-    private CategoryAxis xAxisVisitsPerWeek = new CategoryAxis();
-    private CategoryAxis xAxisVisitsPerDay = new CategoryAxis();
     private CategoryAxis xAxisVisitsPerHour = new CategoryAxis();
-    private CategoryAxis xAxisCorrelationBetweenLogsAndGrades = new CategoryAxis();
+    private NumberAxis xAxisCorrelationBetweenLogsAndGrades = new NumberAxis();
+    private CategoryAxis xAxisVisitsPerWeekAndDay = new CategoryAxis();
+    private CategoryAxis xAxisVisitsPerDayAndHour = new CategoryAxis();
     private NumberAxis yAxisEventName = new NumberAxis();
     private NumberAxis yAxisEventContext = new NumberAxis();
     private NumberAxis yAxisStudentGroup = new NumberAxis();
     private NumberAxis yAxisStudentName = new NumberAxis();
-    private NumberAxis yAxisVisitsPerWeek = new NumberAxis();
-    private NumberAxis yAxisVisitsPerDay = new NumberAxis();
     private NumberAxis yAxisVisitsPerHour = new NumberAxis();
     private NumberAxis yAxisCorrelationBetweenLogsAndGrades = new NumberAxis();
+    private NumberAxis yAxisVisitsPerWeekAndDay = new NumberAxis();
+    private NumberAxis yAxisVisitsPerDayAndHour = new NumberAxis();
     private BarChart<Number, String> barChartEventName = new BarChart<>(yAxisEventName, xAxisEventName);
     private BarChart<Number, String> barChartEventContext = new BarChart<>(yAxisEventContext, xAxisEventContext);
     private BarChart<String, Number> barChartStudentGroup = new BarChart<>(xAxisStudentGroup, yAxisStudentGroup);
     private BarChart<String, Number> barChartStudentName = new BarChart<>(xAxisStudentName, yAxisStudentName);
-    private BarChart<String, Number> barChartVisitsPerWeek = new BarChart<>(xAxisVisitsPerWeek, yAxisVisitsPerWeek);
-    private BarChart<String, Number> barChartVisitsPerDay = new BarChart<>(xAxisVisitsPerDay, yAxisVisitsPerDay);
     private BarChart<String, Number> barChartVisitsPerHour = new BarChart<>(xAxisVisitsPerHour, yAxisVisitsPerHour);
-    private BarChart<String, Number> barChartCorrelationBetweenLogsAndGrades = new BarChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
-    private List<Integer> mapValueEventName, mapValueEventContext;
-    private List<String> mapKeyEventName, mapKeyEventContext;
-    private Map<String, Integer> dataMapStudentGroup, dataMapStudentName;
-    private List<String> time, day;
-    private List<Integer> weekOccurrences, dayOccurrences, timeOccurrences;
+    private ScatterChart<Number, Number> scatterChartCorrelationBetweenLogsAndGrades = new ScatterChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
+    private StackedBarChart<String, Number> stackedBarChartVisitsPerWeekAndDay = new StackedBarChart<>(xAxisVisitsPerWeekAndDay, yAxisVisitsPerWeekAndDay);
+    private StackedBarChart<String, Number> stackedBarChartVisitsPerDayAndHour = new StackedBarChart<>(xAxisVisitsPerDayAndHour, yAxisVisitsPerDayAndHour);
 
     public static void main(String[] args) {
         launch(args);
@@ -114,26 +119,15 @@ public class Main extends Application {
         titledPaneTimeFrame.setCollapsible(false);
         // All the used Tabs
         Tab tabAllSelectedData = new Tab("Valitud andmed ");
-        Tab tabEventContext = new Tab("Sündmuse kontekst ");
-        Tab tabEventName = new Tab("Sündmuse nimi ");
-        Tab tabStudentName = new Tab("Õpilase nimi ");
-        Tab tabStudentGroup = new Tab("Õpilaste grupid ");
-        Tab tabStudentGrades = new Tab("Õpilaste hinded ");
-        Tab tabVisitsPerWeek = new Tab("Külastused nädalati ");
-        Tab tabVisitsPerDay = new Tab("Külastused päeviti ");
-        Tab tabVisitsPerHour = new Tab("Külastused tunniti ");
-        Tab tabCorrelatonBetweenLogsAndGrades = new Tab("Hinnete ja logide korrelatsoon");
+        Tab tabEventContextAndName = new Tab("Sündmuse kontekst ja nimi");
+        Tab tabStudentGroupAndName = new Tab("Õpilase grupp ja nimi");
+        Tab tabVisitsPerWeekAndDay = new Tab("Kirjete arv nädalate kaupa");
+        Tab tabVisitsPerDayAndHour = new Tab("Kirjete arv päevade kaupa");
+        Tab tabVisitsPerHour = new Tab("Kirjete arv tundide kaupa");
+        Tab tabStudentGrades = new Tab("Õpilaste hinded");
+        Tab tabCorrelationBetweenLogsAndGrades = new Tab("Hinnete ja logide korrelatsoon");
         // Make all tabs not closable
-        tabAllSelectedData.setClosable(false);
-        tabEventContext.setClosable(false);
-        tabEventName.setClosable(false);
-        tabStudentName.setClosable(false);
-        tabStudentGroup.setClosable(false);
-        tabStudentGrades.setClosable(false);
-        tabVisitsPerWeek.setClosable(false);
-        tabVisitsPerDay.setClosable(false);
-        tabVisitsPerHour.setClosable(false);
-        tabCorrelatonBetweenLogsAndGrades.setClosable(false);
+        tabPaneAnalysedData.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         // All the used GridPanes
         GridPane gridPaneMainView = new GridPane();
         GridPane gridPaneEventContext = new GridPane();
@@ -142,16 +136,23 @@ public class Main extends Application {
         GridPane gridPaneStudentName = new GridPane();
         GridPane gridPaneTimeFrame = new GridPane();
         GridPane gridPaneTabAllSelectedData = new GridPane();
-        GridPane gridPaneTabEventContext = new GridPane();
-        GridPane gridPaneTabEventName = new GridPane();
-        GridPane gridPaneTabStudentName = new GridPane();
-        GridPane gridPaneTabStudentGroup = new GridPane();
+        GridPane gridPaneTabEventContextAndName = new GridPane();
+        GridPane gridPaneTabStudentGroupAndName = new GridPane();
         GridPane gridPaneTabStudentGrades = new GridPane();
-        GridPane gridPaneTabVisitsPerWeek = new GridPane();
-        GridPane gridPaneTabVisitsPerDay = new GridPane();
         GridPane gridPaneTabVisitsPerHour = new GridPane();
         GridPane gridPaneTabCorrelationBetweenLogsAndGrades = new GridPane();
-        GridPane gridPaneTabPane = new GridPane();
+        GridPane gridPaneTabVisitsPerWeekAndDay = new GridPane();
+        GridPane gridPaneTabVisitsPerDayAndHour = new GridPane();
+        GridPane gridPaneForTabPane = new GridPane();
+        // Add insets for all Tabs
+        gridPaneTabAllSelectedData.setPadding(new Insets(10));
+        gridPaneTabEventContextAndName.setPadding(new Insets(10));
+        gridPaneTabStudentGroupAndName.setPadding(new Insets(10));
+        gridPaneTabStudentGrades.setPadding(new Insets(10));
+        gridPaneTabVisitsPerHour.setPadding(new Insets(10));
+        gridPaneTabCorrelationBetweenLogsAndGrades.setPadding(new Insets(10));
+        gridPaneTabVisitsPerWeekAndDay.setPadding(new Insets(10));
+        gridPaneTabVisitsPerDayAndHour.setPadding(new Insets(10));
         // All the used Labels
         Label labelStudent = new Label("Õpilaste andmed (.xls) ");
         Label labelGrade = new Label("Õpilaste hinded (.xlsx) ");
@@ -167,7 +168,7 @@ public class Main extends Application {
         Button buttonChooseStudentFile = new Button("Ava õpilaste fail");
         Button buttonChooseGradeFile = new Button("Ava hinnete fail");
         Button buttonChooseLogFile = new Button("Ava logide fail");
-        Button buttonSubmitAllTheChosenFiles = new Button("Edasi");
+        Button buttonGoToChooseEventContext = new Button("Edasi");
         Button buttonGoToChooseEventName = new Button("Edasi");
         Button buttonGoBackToMainView = new Button("Tagasi");
         Button buttonGoToChooseStudentGroup = new Button("Edasi");
@@ -175,34 +176,55 @@ public class Main extends Application {
         Button buttonGoToChooseStudentName = new Button("Edasi");
         Button buttonGoBackToChooseEventName = new Button("Tagasi");
         Button buttonGoToChooseTimeFrame = new Button("Edasi");
-        Button buttonGoBackToChoosetudentGroup = new Button("Tagasi");
+        Button buttonGoBackToChooseStudentGroup = new Button("Tagasi");
         Button buttonGoToDisplayAllChosenData = new Button("Edasi");
         Button buttonGoBackToChooseStudentName = new Button("Tagasi");
         Button buttonRemoveDateAndTime = new Button("Tühjenda väljad");
         Button buttonGoBackToTimeFrame = new Button("Tagasi");
-        Button saveBarChartEventContext = new Button("Salvesta graaf");
-        Button saveBarChartEventName = new Button("Salvesta graaf");
-        Button saveBarChartStudentGroup = new Button("Salvesta graaf");
-        Button saveBarChartStudentName = new Button("Salvesta graaf");
-        Button saveBarChartVisitsPerWeek = new Button("Salvesta graaf");
-        Button saveBarChartVisitsPerDay = new Button("Salvesta graaf");
+        Button saveBarChartEventContext = new Button("Salvesta sündmuse konteksti graaf");
+        Button saveBarChartEventName = new Button("Salvesta sündmuse nime graaf");
+        Button saveBarChartStudentGroup = new Button("Salvesta õpilaste rühmade graaf");
+        Button saveBarChartStudentName = new Button("Salvesta õpilaste nimede graaf");
         Button saveBarChartVisitsPerHour = new Button("Salvesta graaf");
         Button saveTableViewGradeData = new Button("Salvesta tabel");
         Button saveTableViewLogData = new Button("Salvesta tabel");
-        Button saveCorrelationBetweenLogsAndGrades = new Button("Salvesta graaf");
+        Button saveTableViewCorrelationBetweenLogsAndGrades = new Button("Salvesta tabel");
+        Button saveStackedBarChartVisitsPerWeekAndDay = new Button("Salvesta graaf");
+        Button saveStackedBarChartVisitsPerDayAndHour = new Button("Salvesta graaf");
+        Button saveTableViewStackedBarChartVisitsPerWeekAndDay = new Button("Salvesta tabel");
+        Button saveTableViewStackedBarChartVisitsPerDayAndHour = new Button("Salvesta tabel");
+        // Creating HBoxes
+        HBox hBoxBarChartEvent = new HBox(10);
+        hBoxBarChartEvent.getChildren().addAll(saveBarChartEventContext, saveBarChartEventName);
+        HBox hBoxBarChartStudent = new HBox(10);
+        hBoxBarChartStudent.getChildren().addAll(saveBarChartStudentGroup, saveBarChartStudentName);
+        HBox hBoxDayAndHour = new HBox(10);
+        hBoxDayAndHour.getChildren().addAll(saveStackedBarChartVisitsPerDayAndHour, saveTableViewStackedBarChartVisitsPerDayAndHour);
+        HBox hBoxWeekAndDay = new HBox(10);
+        hBoxWeekAndDay.getChildren().addAll(saveStackedBarChartVisitsPerWeekAndDay, saveTableViewStackedBarChartVisitsPerWeekAndDay);
+        HBox hBoxGoBackToTimeFrame = new HBox();
+        hBoxGoBackToTimeFrame.getChildren().add(buttonGoBackToTimeFrame);
+        hBoxGoBackToTimeFrame.setPadding(new Insets(10));
+        // Setting ListView SelectionModel to multiple and setting ListViews size as 800
+        setListViewSelectionModelAndSize(listViewLogContext);
+        setListViewSelectionModelAndSize(listViewLogEvent);
+        setListViewSelectionModelAndSize(listViewStudentGroup);
+        setListViewSelectionModelAndSize(listViewStudentName);
         // Making ListViews and TableView selection models to multiple
-        listViewLogContext.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listViewLogEvent.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listViewStudentGroup.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listViewStudentName.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelectedData.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        // Making ListViews and TableView width to 900
-        listViewLogContext.setMinWidth(800);
-        listViewLogEvent.setMinWidth(800);
-        listViewStudentGroup.setMinWidth(800);
-        listViewStudentName.setMinWidth(800);
-        tableViewSelectedData.setMinWidth(900);
-        tableViewSelectedStudentsGrades.setMinWidth(900);
+        tableViewSelectedStudentsGrades.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableViewWeekAndDay.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        tableViewDayAndHour.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        // Making ListViews and TableView width to 800
+        tableViewSelectedData.setMinWidth(800);
+        tableViewSelectedStudentsGrades.setMinWidth(800);
+        tableViewWeekAndDay.setMinWidth(800);
+        tableViewDayAndHour.setMinWidth(800);
+        tableViewSelectedData.setMaxWidth(800);
+        tableViewSelectedStudentsGrades.setMaxWidth(800);
+        tableViewWeekAndDay.setMaxWidth(800);
+        tableViewDayAndHour.setMaxWidth(800);
+        tableViewDayAndHour.setMaxHeight(200);
         // Making TextFields to filter ListViews
         TextField textFieldFilteredLogContext = new TextField();
         TextField textFieldFilteredLogEvent = new TextField();
@@ -213,7 +235,12 @@ public class Main extends Application {
         textFieldFilteredLogEvent.setMinWidth(800);
         textFieldFilteredStudentGroup.setMinWidth(800);
         textFieldFilteredStudentName.setMinWidth(800);
-        // Creating filters for the ListViews
+        // Setting TextField text
+        textFieldFilteredLogContext.setPromptText("Otsi sündmuse konteksti järgi");
+        textFieldFilteredLogEvent.setPromptText("Otsi sündmuse nime järgi");
+        textFieldFilteredStudentGroup.setPromptText("Otsi õpilaste rühma järgi");
+        textFieldFilteredStudentName.setPromptText("Otsi õpilase nime järgi");
+        // Creating filters/searches for the ListViews
         textFieldFilteredLogContext.textProperty().addListener(obs -> {
             String filterLogContext = textFieldFilteredLogContext.getText();
             if(filterLogContext == null || filterLogContext.length() == 0) {
@@ -329,8 +356,8 @@ public class Main extends Application {
         };
         datePickerFrom.setConverter(stringConverter);
         datePickerTo.setConverter(stringConverter);
-        datePickerFrom.setPromptText("dd.MM.yyyy");
-        datePickerTo.setPromptText("dd.MM.yyyy");
+        datePickerFrom.setPromptText("pp.kk.aaaa");
+        datePickerTo.setPromptText("pp.kk.aaaa");
         // Initializing ChoiceBoxes
         for (int i = 0; i<25; i++) {
             choiceBoxTimeFromHours.getItems().add(Integer.toString(i));
@@ -340,7 +367,7 @@ public class Main extends Application {
             choiceBoxTimeFromMinutes.getItems().add(Integer.toString(i));
             choiceBoxTimeToMinutes.getItems().add(Integer.toString(i));
         }
-        // Creating the table for all the selected information
+        // Creating the table for all the selected information from logs
         TableColumn<Log, String> columnLogTime = new TableColumn<>("Aeg");
         TableColumn<Log, String> columnStudentName = new TableColumn<>("Nimi");
         TableColumn<Log, String> columnEventContext = new TableColumn<>("Sündmuse kontekst");
@@ -348,8 +375,8 @@ public class Main extends Application {
         TableColumn<Log, String> columnStudentGroup = new TableColumn<>("Rühm");
         columnLogTime.setMinWidth(100);
         columnStudentName.setMinWidth(115);
-        columnEventContext.setMinWidth(275);
-        columnEventName.setMinWidth(275);
+        columnEventContext.setMinWidth(240);
+        columnEventName.setMinWidth(225);
         columnStudentGroup.setMinWidth(100);
         columnLogTime.setCellValueFactory(new PropertyValueFactory<>("time"));
         columnStudentName.setCellValueFactory(new PropertyValueFactory<>("studentName"));
@@ -371,7 +398,7 @@ public class Main extends Application {
         gridPaneMainView.add(buttonChooseStudentFile, 2, 0);
         gridPaneMainView.add(buttonChooseGradeFile, 2, 1 );
         gridPaneMainView.add(buttonChooseLogFile,2, 2);
-        gridPaneMainView.add(buttonSubmitAllTheChosenFiles, 2, 3);
+        gridPaneMainView.add(buttonGoToChooseEventContext, 2, 3);
         gridPaneMainView.setVgap(15);
         gridPaneMainView.setHgap(200);
         gridPaneEventContext.add(textFieldFilteredLogContext, 0, 0, 2, 1);
@@ -388,16 +415,8 @@ public class Main extends Application {
         gridPaneEventName.add(buttonGoToChooseStudentGroup, 1, 2);
         gridPaneStudentGroups.add(buttonGoBackToChooseEventName, 0, 2);
         gridPaneStudentGroups.add(buttonGoToChooseStudentName, 1, 2);
-        gridPaneStudentName.add(buttonGoBackToChoosetudentGroup, 0, 2);
+        gridPaneStudentName.add(buttonGoBackToChooseStudentGroup, 0, 2);
         gridPaneStudentName.add(buttonGoToChooseTimeFrame, 1, 2);
-        gridPaneEventContext.setVgap(15);
-        gridPaneEventName.setVgap(15);
-        gridPaneStudentGroups.setVgap(15);
-        gridPaneStudentName.setVgap(15);
-        gridPaneEventContext.setHgap(15);
-        gridPaneEventName.setHgap(15);
-        gridPaneStudentGroups.setHgap(15);
-        gridPaneStudentName.setHgap(15);
         gridPaneTimeFrame.add(labelDateFrom, 0, 0);
         gridPaneTimeFrame.add(labelDateTo, 2, 0);
         gridPaneTimeFrame.add(datePickerFrom, 0, 1, 2, 1);
@@ -411,52 +430,67 @@ public class Main extends Application {
         gridPaneTimeFrame.add(buttonGoBackToChooseStudentName, 0, 5);
         gridPaneTimeFrame.add(buttonGoToDisplayAllChosenData, 2, 5);
         gridPaneTimeFrame.add(buttonRemoveDateAndTime, 0, 4);
+        gridPaneTabAllSelectedData.add(tableViewSelectedData, 0, 0, 2, 1);
+        gridPaneTabEventContextAndName.add(barChartEventName, 0, 1);
+        gridPaneTabEventContextAndName.add(barChartEventContext, 0, 0);
+        gridPaneTabStudentGroupAndName.add(barChartStudentGroup, 0, 0);
+        gridPaneTabStudentGroupAndName.add(barChartStudentName, 0, 1);
+        gridPaneTabStudentGrades.add(tableViewSelectedStudentsGrades, 0, 0 ,2, 1);
+        gridPaneTabVisitsPerHour.add(barChartVisitsPerHour, 0, 0);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(tableViewCorrelation, 0, 1);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(scatterChartCorrelationBetweenLogsAndGrades, 0, 0);
+        gridPaneTabVisitsPerWeekAndDay.add(stackedBarChartVisitsPerWeekAndDay, 0, 0);
+        gridPaneTabVisitsPerDayAndHour.add(stackedBarChartVisitsPerDayAndHour, 0, 0);
+        gridPaneTabVisitsPerWeekAndDay.add(tableViewWeekAndDay, 0, 1);
+        gridPaneTabVisitsPerDayAndHour.add(tableViewDayAndHour, 0, 1);
+        gridPaneTabAllSelectedData.add(saveTableViewLogData, 0, 1);
+        gridPaneTabEventContextAndName.add(hBoxBarChartEvent, 0, 2);
+        gridPaneTabStudentGroupAndName.add(hBoxBarChartStudent, 0, 2);
+        gridPaneTabStudentGrades.add(saveTableViewGradeData, 0, 1);
+        gridPaneTabVisitsPerHour.add(saveBarChartVisitsPerHour, 0, 1);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(saveTableViewCorrelationBetweenLogsAndGrades, 0, 2);
+        gridPaneTabVisitsPerWeekAndDay.add(hBoxWeekAndDay, 0, 2);
+        gridPaneTabVisitsPerDayAndHour.add(hBoxDayAndHour, 0, 2);
+        gridPaneForTabPane.add(hBoxGoBackToTimeFrame, 0, 1);
+        gridPaneEventContext.setVgap(15);
+        gridPaneEventName.setVgap(15);
+        gridPaneStudentGroups.setVgap(15);
+        gridPaneStudentName.setVgap(15);
         gridPaneTimeFrame.setVgap(15);
         gridPaneTimeFrame.setHgap(15);
         gridPaneTabAllSelectedData.setVgap(15);
         gridPaneTabStudentGrades.setVgap(15);
         gridPaneTabAllSelectedData.setVgap(15);
-        gridPaneTabEventName.setVgap(15);
-        gridPaneTabEventContext.setVgap(15);
-        gridPaneTabStudentGroup.setVgap(15);
-        gridPaneTabStudentName.setVgap(15);
+        gridPaneTabEventContextAndName.setVgap(15);
+        gridPaneTabStudentGroupAndName.setVgap(15);
         gridPaneTabStudentGrades.setVgap(15);
-        gridPaneTabVisitsPerWeek.setVgap(15);
-        gridPaneTabVisitsPerDay.setVgap(15);
         gridPaneTabVisitsPerHour.setVgap(15);
         gridPaneTabCorrelationBetweenLogsAndGrades.setVgap(15);
-        gridPaneTabAllSelectedData.add(tableViewSelectedData, 0, 0, 2, 1);
-        gridPaneTabEventName.add(barChartEventName, 0, 0);
-        gridPaneTabEventContext.add(barChartEventContext, 0, 0);
-        gridPaneTabStudentGroup.add(barChartStudentGroup, 0, 0);
-        gridPaneTabStudentName.add(barChartStudentName, 0, 0);
-        gridPaneTabStudentGrades.add(tableViewSelectedStudentsGrades, 0, 0 ,2, 1);
-        gridPaneTabVisitsPerWeek.add(barChartVisitsPerWeek, 0, 0);
-        gridPaneTabVisitsPerDay.add(barChartVisitsPerDay, 0, 0);
-        gridPaneTabVisitsPerHour.add(barChartVisitsPerHour, 0, 0);
-        gridPaneTabCorrelationBetweenLogsAndGrades.add(barChartCorrelationBetweenLogsAndGrades, 0, 0);
-        gridPaneTabAllSelectedData.add(saveTableViewLogData, 0, 1);
-        gridPaneTabEventName.add(saveBarChartEventName, 0, 1);
-        gridPaneTabEventContext.add(saveBarChartEventContext, 0, 1);
-        gridPaneTabStudentGroup.add(saveBarChartStudentGroup, 0, 1);
-        gridPaneTabStudentName.add(saveBarChartStudentName, 0, 1);
-        gridPaneTabStudentGrades.add(saveTableViewGradeData, 0, 1);
-        gridPaneTabVisitsPerWeek.add(saveBarChartVisitsPerWeek, 0, 1);
-        gridPaneTabVisitsPerDay.add(saveBarChartVisitsPerDay, 0, 1);
-        gridPaneTabVisitsPerHour.add(saveBarChartVisitsPerHour, 0, 1);
-        gridPaneTabCorrelationBetweenLogsAndGrades.add(saveCorrelationBetweenLogsAndGrades, 0, 1);
-        gridPaneTabPane.add(buttonGoBackToTimeFrame, 0, 1);
-        gridPaneTabPane.setVgap(15);
+        gridPaneTabVisitsPerWeekAndDay.setVgap(15);
+        gridPaneTabVisitsPerDayAndHour.setVgap(15);
+        gridPaneEventContext.setHgap(15);
+        gridPaneEventName.setHgap(15);
+        gridPaneStudentGroups.setHgap(15);
+        gridPaneStudentName.setHgap(15);
         // Add elements to Tabs
         tabAllSelectedData.setContent(gridPaneTabAllSelectedData);
-        tabEventContext.setContent(gridPaneTabEventContext);
-        tabEventName.setContent(gridPaneTabEventName);
-        tabStudentName.setContent(gridPaneTabStudentName);
-        tabStudentGroup.setContent(gridPaneTabStudentGroup);
+        ScrollPane scrollPaneWeekAndDay = new ScrollPane();
+        scrollPaneWeekAndDay.setContent(gridPaneTabVisitsPerWeekAndDay);
+        ScrollPane scrollPaneDayAndHour = new ScrollPane();
+        scrollPaneDayAndHour.setContent(gridPaneTabVisitsPerDayAndHour);
+        ScrollPane scrollPaneEventContextAndName = new ScrollPane();
+        scrollPaneEventContextAndName.setContent(gridPaneTabEventContextAndName);
+        ScrollPane scrollPaneStudentGroupAndName = new ScrollPane();
+        scrollPaneStudentGroupAndName.setContent(gridPaneTabStudentGroupAndName);
+        ScrollPane scrollPaneCorrelation = new ScrollPane();
+        scrollPaneCorrelation.setContent(gridPaneTabCorrelationBetweenLogsAndGrades);
+        tabEventContextAndName.setContent(scrollPaneEventContextAndName);
+        tabStudentGroupAndName.setContent(scrollPaneStudentGroupAndName);
         tabStudentGrades.setContent(gridPaneTabStudentGrades);
-        tabVisitsPerWeek.setContent(gridPaneTabVisitsPerWeek);
-        tabVisitsPerDay.setContent(gridPaneTabVisitsPerDay);
+        tabVisitsPerWeekAndDay.setContent(scrollPaneWeekAndDay);
+        tabVisitsPerDayAndHour.setContent(scrollPaneDayAndHour);
         tabVisitsPerHour.setContent(gridPaneTabVisitsPerHour);
+        tabCorrelationBetweenLogsAndGrades.setContent(scrollPaneCorrelation);
         // Adding elements to TitlePanes and TabPane
         titledPaneMainView.setContent(gridPaneMainView);
         titledPaneEventContext.setContent(gridPaneEventContext);
@@ -464,9 +498,9 @@ public class Main extends Application {
         titledPaneStudentGroups.setContent(gridPaneStudentGroups);
         titledPaneStudentName.setContent(gridPaneStudentName);
         titledPaneTimeFrame.setContent(gridPaneTimeFrame);
-        tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContext, tabEventName, tabStudentName, tabStudentGroup, tabStudentGrades, tabVisitsPerWeek, tabVisitsPerDay, tabVisitsPerHour, tabCorrelatonBetweenLogsAndGrades);
+        tabPaneAnalysedData.getTabs().addAll(tabAllSelectedData, tabEventContextAndName, tabStudentGroupAndName, tabVisitsPerWeekAndDay, tabVisitsPerDayAndHour, tabVisitsPerHour, tabStudentGrades, tabCorrelationBetweenLogsAndGrades);
         // GridPane connected with TabPane
-        gridPaneTabPane.add(tabPaneAnalysedData, 0, 0);
+        gridPaneForTabPane.add(tabPaneAnalysedData, 0, 0);
         // Creating the new scenes
         sceneMainView = new Scene(titledPaneMainView, 900, 500);
         sceneLogContext = new Scene(titledPaneEventContext, 900, 500);
@@ -474,7 +508,7 @@ public class Main extends Application {
         sceneFilterByGroup = new Scene(titledPaneStudentGroups, 900, 500);
         sceneFilterByName = new Scene(titledPaneStudentName, 900, 500);
         sceneTimeFrame = new Scene(titledPaneTimeFrame, 900, 500);
-        sceneDisplayAllSelectedData = new Scene(gridPaneTabPane, 900, 500);
+        sceneDisplayAllSelectedData = new Scene(gridPaneForTabPane, 900, 500);
         // Button setOnAction()'s
         buttonChooseStudentFile.setOnAction(e -> {
             studentFile = fileChooserStudent.showOpenDialog(stage);
@@ -488,7 +522,7 @@ public class Main extends Application {
             logFile = fileChooserLog.showOpenDialog(stage);
             if (logFile != null) { labelLogFileName.setText(logFile.getName() + "  "); }
         });
-        buttonSubmitAllTheChosenFiles.setOnAction(e -> {
+        buttonGoToChooseEventContext.setOnAction(e -> {
             Alert alertFileNotFound = null;
             try {
                 moodleLogsProcessing = new MoodleLogsProcessing();
@@ -528,7 +562,6 @@ public class Main extends Application {
                 stage.setScene(sceneLogContext);
             }
         });
-
         // Forward
         buttonGoToChooseEventName.setOnAction(e -> {
             observableListLogContext = listViewLogContext.getSelectionModel().getSelectedItems();
@@ -557,18 +590,10 @@ public class Main extends Application {
             localDateFrom = datePickerFrom.getValue();
             localDateTo = datePickerTo.getValue();
             if (localDateFrom == null && localDateTo != null) {
-                Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Alguskuupäeva pole valitud!");
-                alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali alguskuupäev.");
-                alertTimeHoursFromAfterTimeHoursTo.show();
+                displayErrorAlert("Alguskuupäeva pole valitud!", "Palun vali alguskuupäev.");
             }
             else if (localDateFrom != null && localDateTo == null) {
-                Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Lõpukuupäev pole valitud!");
-                alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali lõpukuupäev.");
-                alertTimeHoursFromAfterTimeHoursTo.show();
+                displayErrorAlert("Lõpukuupäev pole valitud!", "Palun vali lõpukuupäev.");
             }
             else if (localDateFrom != null) {
                 if (choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() != null && choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() != null) {
@@ -599,19 +624,11 @@ public class Main extends Application {
                         String[] from = localTimeFrom.split("\\.");
                         String[] to = localTimeTo.split("\\.");
                         if (Integer.parseInt(from[0]) > Integer.parseInt(to[0])) {
-                            Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                            alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                            alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Algustund on enne lõputundi!");
-                            alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali algustund, mis on enne lõputundi.");
-                            alertTimeHoursFromAfterTimeHoursTo.show();
+                            displayErrorAlert("Algustund on enne lõputundi!", "Palun vali algustund, mis on enne lõputundi.");
                         }
                         else if (from[0].equals(to[0])) {
                             if (Integer.parseInt(from[1]) > Integer.parseInt(to[1])) {
-                                Alert alertTimeMinutesFromAfterTimeMinutesTo = new Alert(Alert.AlertType.ERROR);
-                                alertTimeMinutesFromAfterTimeMinutesTo.setTitle("Viga!");
-                                alertTimeMinutesFromAfterTimeMinutesTo.setHeaderText("Algusminutid on enne lõpuminuteid!");
-                                alertTimeMinutesFromAfterTimeMinutesTo.setContentText("Palun vali algusminutid, mis on enne lõpuminuteid.");
-                                alertTimeMinutesFromAfterTimeMinutesTo.show();
+                                displayErrorAlert("Algusminutid on enne lõpuminuteid!", "Palun vali algusminutid, mis on enne lõpuminuteid.");
                             }
                             else {
                                 runMethodsForTabView();
@@ -624,11 +641,7 @@ public class Main extends Application {
                         }
                     }
                     else if (localDateFrom.isAfter(localDateTo)) {
-                        Alert alertDateFromAfterDateTo = new Alert(Alert.AlertType.ERROR);
-                        alertDateFromAfterDateTo.setTitle("Viga!");
-                        alertDateFromAfterDateTo.setHeaderText("Alguskuupäev on enne lõpukuupäeva!");
-                        alertDateFromAfterDateTo.setContentText("Palun vali alguskuupäev, mis on enne lõpukuupäeva.");
-                        alertDateFromAfterDateTo.show();
+                        displayErrorAlert("Alguskuupäev on enne lõpukuupäeva!", "Palun vali alguskuupäev, mis on enne lõpukuupäeva.");
                     }
                     else {
                         runMethodsForTabView();
@@ -636,32 +649,16 @@ public class Main extends Application {
                     }
                 }
                 else if ((choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() == null) || (choiceBoxTimeFromHours.getValue() == null && choiceBoxTimeFromMinutes.getValue() != null)) {
-                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Algusaeg on valimata!");
-                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali alguaeg.");
-                    alertTimeHoursFromAfterTimeHoursTo.show();
+                    displayErrorAlert("Algusaeg on valimata!", "Palun vali alguaeg.");
                 }
                 else if ((choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() == null) || (choiceBoxTimeToHours.getValue() == null && choiceBoxTimeToMinutes.getValue() != null)) {
-                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Lõpuaeg on valimata!");
-                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali lõpuaeg.");
-                    alertTimeHoursFromAfterTimeHoursTo.show();
+                    displayErrorAlert("Lõpuaeg on valimata!", "Palun vali lõpuaeg.");
                 }
                 else if ((choiceBoxTimeFromHours.getValue() == null && choiceBoxTimeFromMinutes.getValue() == null) && (choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() != null)) {
-                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Algusaeg on valimata!");
-                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali alguaeg.");
-                    alertTimeHoursFromAfterTimeHoursTo.show();
+                    displayErrorAlert("Algusaeg on valimata!", "Palun vali alguaeg.");
                 }
                 else if ((choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() != null) && (choiceBoxTimeToHours.getValue() == null && choiceBoxTimeToMinutes.getValue() == null)) {
-                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Viga!");
-                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Lõpuaeg on valimata!");
-                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Palun vali lõpuaeg.");
-                    alertTimeHoursFromAfterTimeHoursTo.show();
+                    displayErrorAlert("Lõpuaeg on valimata!", "Palun vali lõpuaeg.");
                 }
                 else {
                     localTimeFrom = null;
@@ -701,17 +698,14 @@ public class Main extends Application {
             observableListLogEvent = FXCollections.observableArrayList();
             stage.setScene(sceneLogName);
         });
-        buttonGoBackToChoosetudentGroup.setOnAction(e -> {
+        buttonGoBackToChooseStudentGroup.setOnAction(e -> {
             listViewStudentName.setItems(FXCollections.observableArrayList());
             observableListStudentName = FXCollections.observableArrayList();
             observableListStudentGroup = FXCollections.observableArrayList();
             stage.setScene(sceneFilterByGroup);
         });
         buttonGoBackToChooseStudentName.setOnAction(e -> {
-            localDateFrom = null;
-            localDateTo = null;
-            localTimeFrom = null;
-            localTimeTo = null;
+            makeLocalDateAndTimeNull();
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
             choiceBoxTimeFromHours.setValue(null);
@@ -722,14 +716,11 @@ public class Main extends Application {
             stage.setScene(sceneFilterByName);
         });
         buttonGoBackToTimeFrame.setOnAction(e -> {
+            makeLocalDateAndTimeNull();
             choiceBoxTimeFromHours.setValue(null);
             choiceBoxTimeFromMinutes.setValue(null);
             choiceBoxTimeToHours.setValue(null);
             choiceBoxTimeToMinutes.setValue(null);
-            localDateFrom = null;
-            localDateTo = null;
-            localTimeFrom = null;
-            localTimeTo = null;
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
             filteredResults = new ArrayList<>();
@@ -737,32 +728,35 @@ public class Main extends Application {
             barChartEventContext.getData().clear();
             barChartStudentGroup.getData().clear();
             barChartStudentName.getData().clear();
-            barChartVisitsPerWeek.getData().clear();
-            barChartVisitsPerDay.getData().clear();
             barChartVisitsPerHour.getData().clear();
-            barChartCorrelationBetweenLogsAndGrades.getData().clear();
+            scatterChartCorrelationBetweenLogsAndGrades.getData().clear();
+            stackedBarChartVisitsPerDayAndHour.getData().clear();
+            stackedBarChartVisitsPerWeekAndDay.getData().clear();
             tableViewSelectedData.setItems(FXCollections.observableArrayList());
-            tableViewSelectedStudentsGrades.setItems(FXCollections.observableArrayList());
+            tableViewSelectedStudentsGrades.getItems().clear();
+            tableViewWeekAndDay.getItems().clear();
+            tableViewDayAndHour.getItems().clear();
+            tableViewCorrelation.getItems().clear();
+            tableViewSelectedStudentsGrades.getColumns().clear();
+            tableViewWeekAndDay.getColumns().clear();
+            tableViewDayAndHour.getColumns().clear();
+            tableViewCorrelation.getColumns().clear();
             stage.setScene(sceneTimeFrame);
         });
-
         // Extra Button actions
         buttonRemoveDateAndTime.setOnAction(e -> {
+            makeLocalDateAndTimeNull();
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
-            localDateFrom = null;
-            localDateTo = null;
-            localTimeFrom = null;
-            localTimeTo = null;
             choiceBoxTimeFromHours.setValue(null);
             choiceBoxTimeFromMinutes.setValue(null);
             choiceBoxTimeToHours.setValue(null);
             choiceBoxTimeToMinutes.setValue(null);
         });
-        // Exporting tables and graphs
+        // Exporting TableViews
         saveTableViewLogData.setOnAction(e -> {
             Workbook workbook = new HSSFWorkbook();
-            Sheet spreadsheet = workbook.createSheet("Logid");
+            Sheet spreadsheet = workbook.createSheet("TableViewLogs");
             Row row = spreadsheet.createRow(0);
             for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
                 row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getText());
@@ -779,18 +773,18 @@ public class Main extends Application {
                 }
             }
             try {
-                FileOutputStream fileOut = new FileOutputStream("Logiandmed.xls");
+                FileOutputStream fileOut = new FileOutputStream("TableViewLogs.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveTableViewGradeData.setOnAction(e -> {
             Workbook workbook = new HSSFWorkbook();
-            Sheet spreadsheet = workbook.createSheet("Hinded");
+            Sheet spreadsheet = workbook.createSheet("TableViewGrades");
             Row row = spreadsheet.createRow(0);
             for (int j = 0; j < tableViewSelectedStudentsGrades.getColumns().size(); j++) {
                 row.createCell(j).setCellValue(tableViewSelectedStudentsGrades.getColumns().get(j).getText());
@@ -807,15 +801,100 @@ public class Main extends Application {
                 }
             }
             try {
-                FileOutputStream fileOut = new FileOutputStream("Hinneteandmed.xls");
+                FileOutputStream fileOut = new FileOutputStream("TableViewGrades.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (Exception ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
+        saveTableViewStackedBarChartVisitsPerWeekAndDay.setOnAction(e -> {
+            Workbook workbook = new HSSFWorkbook();
+            Sheet spreadsheet = workbook.createSheet("TableViewWeekAndDay");
+            Row row = spreadsheet.createRow(0);
+            for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getText());
+            }
+            for (int i = 0; i < tableViewWeekAndDay.getItems().size(); i++) {
+                row = spreadsheet.createRow(i + 1);
+                for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
+                    if(tableViewWeekAndDay.getColumns().get(j).getCellData(i) != null) {
+                        row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString());
+                    }
+                    else {
+                        row.createCell(j).setCellValue("");
+                    }
+                }
+            }
+            try {
+                FileOutputStream fileOut = new FileOutputStream("TableViewWeekAndDay.xls");
+                workbook.write(fileOut);
+                fileOut.close();
+                displayInformationAlert();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            }
+        });
+        saveTableViewStackedBarChartVisitsPerDayAndHour.setOnAction(e -> {
+            Workbook workbook = new HSSFWorkbook();
+            Sheet spreadsheet = workbook.createSheet("TableViewDayAndHour");
+            Row row = spreadsheet.createRow(0);
+            for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getText());
+            }
+            for (int i = 0; i < tableViewWeekAndDay.getItems().size(); i++) {
+                row = spreadsheet.createRow(i + 1);
+                for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
+                    if(tableViewWeekAndDay.getColumns().get(j).getCellData(i) != null) {
+                        row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString());
+                    }
+                    else {
+                        row.createCell(j).setCellValue("");
+                    }
+                }
+            }
+            try {
+                FileOutputStream fileOut = new FileOutputStream("TableViewDayAndHour.xls");
+                workbook.write(fileOut);
+                fileOut.close();
+                displayInformationAlert();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            }
+        });
+        saveTableViewCorrelationBetweenLogsAndGrades.setOnAction(e -> {
+            Workbook workbook = new HSSFWorkbook();
+            Sheet spreadsheet = workbook.createSheet("TableViewCorrelation");
+            Row row = spreadsheet.createRow(0);
+            for (int j = 0; j < tableViewCorrelation.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewCorrelation.getColumns().get(j).getText());
+            }
+            for (int i = 0; i < tableViewCorrelation.getItems().size(); i++) {
+                row = spreadsheet.createRow(i + 1);
+                for (int j = 0; j < tableViewCorrelation.getColumns().size(); j++) {
+                    if(tableViewCorrelation.getColumns().get(j).getCellData(i) != null) {
+                        row.createCell(j).setCellValue(tableViewCorrelation.getColumns().get(j).getCellData(i).toString());
+                    }
+                    else {
+                        row.createCell(j).setCellValue("");
+                    }
+                }
+            }
+            try {
+                FileOutputStream fileOut = new FileOutputStream("TableViewCorrelation.xls");
+                workbook.write(fileOut);
+                fileOut.close();
+                displayInformationAlert();
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            }
+        });
+        // Exporting BarCharts
         saveBarChartEventContext.setOnAction(e -> {
             SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
             ExcelFile workbook = new ExcelFile();
@@ -838,10 +917,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventContext.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartEventName.setOnAction(e -> {
@@ -866,10 +945,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventName.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartStudentGroup.setOnAction(e -> {
@@ -900,10 +979,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentGroup.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartStudentName.setOnAction(e -> {
@@ -934,64 +1013,10 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentName.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
-            }
-        });
-        saveBarChartVisitsPerWeek.setOnAction(e -> {
-            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
-            ExcelFile workbook = new ExcelFile();
-            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerWeek");
-            int numberOfEventContext = weekOccurrences.size();
-            // Create Excel chart and select data for it.
-            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
-            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
-            for (int i = 0; i < numberOfEventContext; i++) {
-                worksheet.getCell(i + 1, 0).setValue(i+1);
-                worksheet.getCell(i + 1, 1).setValue(weekOccurrences.get(i));
-            }
-            // Set header row and formatting.
-            worksheet.getCell(0, 0).setValue("Nädalad");
-            worksheet.getCell(0, 1).setValue("Esinemine logides");
-            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
-            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
-            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
-            try {
-                workbook.save("BarChartVisitsPerWeek.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
-            }
-        });
-        saveBarChartVisitsPerDay.setOnAction(e -> {
-            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
-            ExcelFile workbook = new ExcelFile();
-            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerDay");
-            int numberOfEventContext = day.size();
-            // Create Excel chart and select data for it.
-            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
-            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, numberOfEventContext, 1), true);
-            // Add data which is used by the Excel chart.
-            String[] names = day.toArray(new String[0]);
-            for (int i = 0; i < numberOfEventContext; i++) {
-                worksheet.getCell(i + 1, 0).setValue(names[i % names.length] + (i < names.length ? "" : " " + (i / names.length + 1)));
-                worksheet.getCell(i + 1, 1).setValue(dayOccurrences.get(i));
-            }
-            // Set header row and formatting.
-            worksheet.getCell(0, 0).setValue("Päevad");
-            worksheet.getCell(0, 1).setValue("Esinemine logides");
-            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
-            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
-            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
-            try {
-                workbook.save("BarChartVisitsPerDay.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
-            } catch (IOException ex) {
-                ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
         saveBarChartVisitsPerHour.setOnAction(e -> {
@@ -1009,21 +1034,84 @@ public class Main extends Application {
                 worksheet.getCell(i + 1, 1).setValue(timeOccurrences.get(i));
             }
             // Set header row and formatting.
-            worksheet.getCell(0, 0).setValue("Tunnid");
+            worksheet.getCell(0, 0).setValue("Ajavahemik");
             worksheet.getCell(0, 1).setValue("Esinemine logides");
             worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
             worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerHour.xlsx");
-                displayInformation("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
+                displayInformationAlert();
             } catch (IOException ex) {
                 ex.printStackTrace();
-                displayAlert("Viga!", "Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
             }
         });
-        saveCorrelationBetweenLogsAndGrades.setOnAction(e -> {
+        // Exporting StackedBarCharts
+        saveStackedBarChartVisitsPerWeekAndDay.setOnAction(e -> {
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerWeek");
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, mapDayOccurrencesByEachWeek.size(), 1), true);
+            Set<Integer> set = mapDayOccurrencesByEachWeek.keySet();
+            List<Integer> list = new ArrayList<>(set);
+            for (int i = 0; i < list.size(); i++) {
+                int sum = 0;
+                for (Integer integer : mapDayOccurrencesByEachWeek.get(list.get(i)).values()) { sum += integer; }
+                worksheet.getCell(i + 1, 0).setValue(list.get(i));
+                worksheet.getCell(i + 1, 1).setValue(sum);
 
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Nädal");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartVisitsPerWeek.xlsx");
+                displayInformationAlert();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            }
+        });
+        saveStackedBarChartVisitsPerDayAndHour.setOnAction(e -> {
+            SpreadsheetInfo.setLicense("FREE-LIMITED-KEY");
+            ExcelFile workbook = new ExcelFile();
+            ExcelWorksheet worksheet = workbook.addWorksheet("BarChartVisitsPerDay");
+            // Create Excel chart and select data for it.
+            ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
+            chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, mapHourOccurrencesByEachDay.size(), 1), true);
+            for (int i = 0; i < mapHourOccurrencesByEachDay.size(); i++) {
+                List<String> days = new ArrayList<>();
+                days.add("E");
+                days.add("T");
+                days.add("K");
+                days.add("N");
+                days.add("R");
+                days.add("L");
+                days.add("P");
+                int sum = 0;
+                for (Integer integer : mapHourOccurrencesByEachDay.get(days.get(i)).values()) { sum += integer; }
+                worksheet.getCell(i + 1, 0).setValue(days.get(i));
+                worksheet.getCell(i + 1, 1).setValue(sum);
+            }
+            // Set header row and formatting.
+            worksheet.getCell(0, 0).setValue("Päev");
+            worksheet.getCell(0, 1).setValue("Esinemine logides");
+            worksheet.getCell(0, 0).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getCell(0, 1).getStyle().getFont().setWeight(ExcelFont.BOLD_WEIGHT);
+            worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
+            try {
+                workbook.save("BarChartVisitsPerDay.xlsx");
+                displayInformationAlert();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            }
         });
         // Finalizing the Stage
         stage.setScene(sceneMainView);
@@ -1032,18 +1120,7 @@ public class Main extends Application {
         stage.show();
     }
 
-    private void runMethodsForTabView() {
-        displaySelectedData();
-        displayBarChartEventName();
-        displayBarChartEventContext();
-        displayBarChartStudentGroup();
-        displayBarChartStudentName();
-        displayStudentGrades();
-        displayBarChartVisitsPerWeek();
-        displayBarChartVisitsPerDay();
-        displayBarChartVisitsPerHour();
-    }
-
+    // Display ListViews
     private void displayEventContext() {
         Platform.runLater(() -> {
             List<String> contextList = new ArrayList<>(moodleLogsProcessing.getEventContext());
@@ -1051,7 +1128,6 @@ public class Main extends Application {
             listViewLogContext.getItems().addAll(contextList);
         });
     }
-
     private void displayEventName() {
         Platform.runLater(() -> {
             Set<String> setEventName = new HashSet<>();
@@ -1066,7 +1142,6 @@ public class Main extends Application {
             listViewLogEventFinal.setItems(listViewLogEvent.getItems());
         });
     }
-
     private void displayStudentGroup() {
         Platform.runLater(() -> {
             List<String> groupList = new ArrayList<>(studentInfoProcessing.getStudentGroup());
@@ -1075,7 +1150,6 @@ public class Main extends Application {
         });
 
     }
-
     private void displayStudentName() {
         Platform.runLater(() -> {
             Set<String> setStudentName = new HashSet<>();
@@ -1091,8 +1165,8 @@ public class Main extends Application {
         });
 
     }
-
-    private void displaySelectedData() {
+    // Display TableViews
+    private void displayTableViewLogs() {
         Platform.runLater(() -> {
             if (localDateFrom != null) {
                 if (localTimeFrom == null) {
@@ -1176,11 +1250,152 @@ public class Main extends Application {
             }
         });
     }
-
+    private void displayTableViewStudentGrades() {
+        Platform.runLater(() -> {
+            Integer[] integers = new Integer[100];
+            for (int i = 0; i < 100; i++) {
+                integers[i] = i;
+            }
+            for (Integer integer : integers) {
+                TableColumn<List<StringProperty>, String> columnStudentGrade = new TableColumn<>(gradesProcessing.getColumnNames().get(integer).replace(" (Punktid)", ""));
+                columnStudentGrade.setCellValueFactory(data -> data.getValue().get(integer));
+                tableViewSelectedStudentsGrades.getColumns().add(columnStudentGrade);
+            }
+            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
+            for (List<String> grade : gradesProcessing.getStudentGrades()) {
+                List<StringProperty> firstRow = new ArrayList<>();
+                if (observableListStudentName.contains(grade.get(0))) {
+                    for (int i = 0; i < grade.size(); i++) {
+                        firstRow.add(i, new SimpleStringProperty(grade.get(i)));
+                    }
+                    data.add(firstRow);
+                }
+            }
+            tableViewSelectedStudentsGrades.setItems(data);
+        });
+    }
+    private void displayTableViewWeekAndDay() {
+        Platform.runLater(() -> {
+            Integer[] integers = new Integer[8];
+            List<String> days = new ArrayList<>();
+            days.add("Nädal/Päev");
+            days.add("E");
+            days.add("T");
+            days.add("K");
+            days.add("N");
+            days.add("R");
+            days.add("L");
+            days.add("P");
+            for (int i = 0; i < 8; i++) {
+                integers[i] = i;
+            }
+            for (Integer integer : integers) {
+                TableColumn<List<StringProperty>, String> columnWeekAndDay = new TableColumn<>(days.get(integer));
+                columnWeekAndDay.setCellValueFactory(data  -> data.getValue().get(integer));
+                columnWeekAndDay.setMinWidth(97);
+                tableViewWeekAndDay.getColumns().add(columnWeekAndDay);
+            }
+            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
+            for (Integer var : mapDayOccurrencesByEachWeek.keySet()) {
+                List<StringProperty> firstRow = new ArrayList<>();
+                for (Integer integer : integers) {
+                    if (integer == 0) {
+                        firstRow.add(integer, new SimpleStringProperty(Integer.toString(var)));
+                    }
+                    else {
+                        firstRow.add(integer, new SimpleStringProperty(Integer.toString(mapDayOccurrencesByEachWeek.get(var).get(days.get(integer)))));
+                    }
+                }
+                data.add(firstRow);
+            }
+            tableViewWeekAndDay.setItems(data);
+        });
+    }
+    private void displayTableViewDayAndHour() {
+        Platform.runLater(() -> {
+            Integer[] integers = new Integer[13];
+            List<String> hours = new ArrayList<>();
+            hours.add("Päev/Tunnid");
+            hours.add("0-1");
+            hours.add("2-3");
+            hours.add("4-5");
+            hours.add("6-7");
+            hours.add("8-9");
+            hours.add("10-11");
+            hours.add("12-13");
+            hours.add("14-15");
+            hours.add("16-17");
+            hours.add("18-19");
+            hours.add("20-21");
+            hours.add("22-23");
+            List<String> days = new ArrayList<>();
+            days.add("E");
+            days.add("T");
+            days.add("K");
+            days.add("N");
+            days.add("R");
+            days.add("L");
+            days.add("P");
+            for (int i = 0; i < 13; i++) {
+                integers[i] = i;
+            }
+            for (Integer integer : integers) {
+                TableColumn<List<StringProperty>, String> columnDayAndHour = new TableColumn<>(hours.get(integer));
+                columnDayAndHour.setCellValueFactory(data  -> data.getValue().get(integer));
+                columnDayAndHour.setMinWidth(58);
+                tableViewDayAndHour.getColumns().add(columnDayAndHour);
+            }
+            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
+            for (String string : days) {
+                List<StringProperty> firstRow = new ArrayList<>();
+                for (Integer integer : integers) {
+                    if (integer == 0) {
+                        firstRow.add(integer, new SimpleStringProperty(string));
+                    }
+                    else {
+                        firstRow.add(integer, new SimpleStringProperty(Integer.toString(mapHourOccurrencesByEachDay.get(string).get(hours.get(integer)))));
+                    }
+                }
+                data.add(firstRow);
+            }
+            tableViewDayAndHour.setItems(data);
+        });
+    }
+    private void displayTableViewCorrelation() {
+        Platform.runLater(() -> {
+            Integer[] integers = new Integer[2];
+            List<String> days = new ArrayList<>();
+            days.add("Hinne");
+            days.add("Logisid");
+            for (int i = 0; i < 2; i++) {
+                integers[i] = i;
+            }
+            for (Integer integer : integers) {
+                TableColumn<List<StringProperty>, String> columnCorrelation = new TableColumn<>(days.get(integer));
+                columnCorrelation.setCellValueFactory(data  -> data.getValue().get(integer));
+                columnCorrelation.setMinWidth(390);
+                tableViewCorrelation.getColumns().add(columnCorrelation);
+            }
+            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
+            for (Map<String, Double> map : listOfCorrelationData) {
+                List<StringProperty> firstRow = new ArrayList<>();
+                for (Integer integer : integers) {
+                    if (integer == 0) {
+                        firstRow.add(integer, new SimpleStringProperty(Double.toString(map.get("Points"))));
+                    }
+                    else {
+                        firstRow.add(integer, new SimpleStringProperty(Double.toString(map.get("Logs"))));
+                    }
+                }
+                data.add(firstRow);
+            }
+            tableViewCorrelation.setItems(data);
+        });
+    }
+    // Display BarCharts
     private void displayBarChartEventName() {
         Platform.runLater(() -> {
             XYChart.Series<Number, String> dataSeriesEventName = new XYChart.Series<>();
-            dataSeriesEventName.setName("Kui palju sündmuse nime kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapEventName = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapEventName.containsKey(log.getEventName())) {
@@ -1220,15 +1435,15 @@ public class Main extends Application {
                     dataSeriesEventName.getData().add(new XYChart.Data<>(mapValueEventName.get(i), mapKeyEventName.get(i)));
                 }
             }
-            barChartEventName.setMinWidth(900);
+            barChartEventName.setMinWidth(800);
+            barChartEventName.setTitle("Kui palju sündmuse nime kohta käivaid kirjeid esineb logides");
+            barChartEventName.setLegendVisible(false);
             barChartEventName.getData().add(dataSeriesEventName);
         });
     }
-
     private void displayBarChartEventContext() {
         Platform.runLater(() -> {
             XYChart.Series<Number, String> dataSeriesEventContext = new XYChart.Series<>();
-            dataSeriesEventContext.setName("Kui palju sündmuse konteksti kohta käivaid kirjeid esineb logides.");
             Map<String, Integer> dataMapEventContext = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapEventContext.containsKey(log.getEventContext())) {
@@ -1268,15 +1483,15 @@ public class Main extends Application {
                     dataSeriesEventContext.getData().add(new XYChart.Data<>(mapValueEventContext.get(i), mapKeyEventContext.get(i)));
                 }
             }
-            barChartEventContext.setMinWidth(900);
+            barChartEventContext.setMinWidth(800);
+            barChartEventContext.setTitle("Kui palju sündmuse konteksti kohta käivaid kirjeid esineb logides");
+            barChartEventContext.setLegendVisible(false);
             barChartEventContext.getData().add(dataSeriesEventContext);
         });
     }
-
     private void displayBarChartStudentGroup() {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentGroup = new XYChart.Series<>();
-            dataSeriesStudentGroup.setName("Kui palju iga rühma kohta käivaid kirjeid esineb logides.");
             dataMapStudentGroup = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentGroup.containsKey(log.getStudentGroup())) {
@@ -1288,15 +1503,15 @@ public class Main extends Application {
             for (String key : dataMapStudentGroup.keySet()) {
                 dataSeriesStudentGroup.getData().add(new XYChart.Data<>(key, dataMapStudentGroup.get(key)));
             }
-            barChartStudentGroup.setMinWidth(900);
+            barChartStudentGroup.setMinWidth(800);
+            barChartStudentGroup.setTitle("Kui palju iga rühm kohta käivaid kirjeid esineb logides");
+            barChartStudentGroup.setLegendVisible(false);
             barChartStudentGroup.getData().add(dataSeriesStudentGroup);
         });
     }
-
     private void displayBarChartStudentName() {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentName = new XYChart.Series<>();
-            dataSeriesStudentName.setName("Kui palju iga õpilase kohta käivaid kirjeid esineb logides.");
             dataMapStudentName = new HashMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentName.containsKey(log.getStudentName())) {
@@ -1308,39 +1523,414 @@ public class Main extends Application {
             for (String key : dataMapStudentName.keySet()) {
                 dataSeriesStudentName.getData().add(new XYChart.Data<>(key, dataMapStudentName.get(key)));
             }
-            barChartStudentName.setMinWidth(900);
+            barChartStudentName.setMinWidth(800);
+            barChartStudentName.setTitle("Kui palju iga õpilase kohta käivaid kirjeid esineb logides");
+            barChartStudentName.setLegendVisible(false);
             barChartStudentName.getData().add(dataSeriesStudentName);
         });
     }
-
-
-    private void displayStudentGrades() {
+    private void displayStackedBarChartVisitsPerWeekAndDay() {
         Platform.runLater(() -> {
-            Integer[] integers = new Integer[100];
-            for (int i = 0; i< 100; i++) {
-                integers[i] = i;
+            XYChart.Series<String, Number> monday = new XYChart.Series<>();
+            monday.setName("Esmaspäev");
+            XYChart.Series<String, Number> tuesday = new XYChart.Series<>();
+            tuesday.setName("Teisipäev");
+            XYChart.Series<String, Number> wednesday = new XYChart.Series<>();
+            wednesday.setName("Kolmapäev");
+            XYChart.Series<String, Number> thursday = new XYChart.Series<>();
+            thursday.setName("Neljapäev");
+            XYChart.Series<String, Number> friday = new XYChart.Series<>();
+            friday.setName("Reede");
+            XYChart.Series<String, Number> saturday = new XYChart.Series<>();
+            saturday.setName("Laupäev");
+            XYChart.Series<String, Number> sunday = new XYChart.Series<>();
+            sunday.setName("Pühapäev");
+            mapDayOccurrencesByEachWeek = new HashMap<>();
+            for (int i = 1; i < 53; i++) {
+                Map<String, Integer> mapOfDays = new HashMap<>();
+                mapOfDays.put("E", 0);
+                mapOfDays.put("T", 0);
+                mapOfDays.put("K", 0);
+                mapOfDays.put("N", 0);
+                mapOfDays.put("R", 0);
+                mapOfDays.put("L", 0);
+                mapOfDays.put("P", 0);
+                mapDayOccurrencesByEachWeek.put(i, mapOfDays);
             }
-            for (Integer integer : integers) {
-                TableColumn<List<StringProperty>, String> columnStudentGrade = new TableColumn<>(gradesProcessing.getColumnNames().get(integer).replace(" (Punktid)", ""));
-                columnStudentGrade.setCellValueFactory(data -> data.getValue().get(integer));
-                tableViewSelectedStudentsGrades.getColumns().add(columnStudentGrade);
-            }
-            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
-            for (List<String> grade : gradesProcessing.getStudentGrades()) {
-                List<StringProperty> firstRow = new ArrayList<>();
-                for (int i = 0; i < grade.size(); i++) {
-                    firstRow.add(i, new SimpleStringProperty(grade.get(i)));
+            for (Log log : filteredResults) {
+                DateTimeFormatter dateTimeFormatter;
+                String[] logArray = log.getTime().split(" ");
+                if (logArray[0].length() == 9) { dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy"); }
+                else { dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); }
+                LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
+                WeekFields weekFields = WeekFields.of(Locale.getDefault());
+                int weekNumber = localDate.get(weekFields.weekOfWeekBasedYear());
+                if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("E", mapDayOccurrencesByEachWeek.get(weekNumber).get("E") + 1);
                 }
-                data.add(firstRow);
+                else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("T", mapDayOccurrencesByEachWeek.get(weekNumber).get("T") + 1);
+                }
+                else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("K", mapDayOccurrencesByEachWeek.get(weekNumber).get("K") + 1);
+                }
+                else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("N", mapDayOccurrencesByEachWeek.get(weekNumber).get("N") + 1);
+                }
+                else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("R", mapDayOccurrencesByEachWeek.get(weekNumber).get("R") + 1);
+                }
+                else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("L", mapDayOccurrencesByEachWeek.get(weekNumber).get("L") + 1);
+                }
+                else {
+                    mapDayOccurrencesByEachWeek.get(weekNumber).put("P", mapDayOccurrencesByEachWeek.get(weekNumber).get("P") + 1);
+                }
             }
-            tableViewSelectedStudentsGrades.setItems(data);
+            for (int i = 1; i < 53; i++) {
+                Collection<Integer> collection = mapDayOccurrencesByEachWeek.get(i).values();
+                int sum = 0;
+                for (Integer integer : collection) {
+                    sum += integer;
+                }
+                if (sum != 0) {
+                    for (int j = 0; j < 7; j++) {
+                        if (j == 0) {
+                            monday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("E"))));
+                        }
+                        else if (j == 1) {
+                            tuesday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("T"))));
+                        }
+                        else if (j == 2) {
+                            wednesday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("K"))));
+                        }
+                        else if (j == 3) {
+                            thursday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("N"))));
+                        }
+                        else if (j == 4) {
+                            friday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("R"))));
+                        }
+                        else if (j == 5) {
+                            saturday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("L"))));
+                        }
+                        else {
+                            sunday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("P"))));
+                        }
+                    }
+                }
+                else {
+                    mapDayOccurrencesByEachWeek.remove(i);
+                }
+            }
+            stackedBarChartVisitsPerWeekAndDay.setMinWidth(800);
+            stackedBarChartVisitsPerWeekAndDay.setTitle("Kui palju iga nädala kohta käivaid kirjeid esineb logides");
+            stackedBarChartVisitsPerWeekAndDay.getData().add(monday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(tuesday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(wednesday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(thursday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(friday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(saturday);
+            stackedBarChartVisitsPerWeekAndDay.getData().add(sunday);
+
         });
     }
-
+    private void displayStackedBarChartVisitsPerDayAndHour() {
+        Platform.runLater(() -> {
+            XYChart.Series<String, Number> zero = new XYChart.Series<>();
+            zero.setName("0-1");
+            XYChart.Series<String, Number> two = new XYChart.Series<>();
+            two.setName("2-3");
+            XYChart.Series<String, Number> four = new XYChart.Series<>();
+            four.setName("4-5");
+            XYChart.Series<String, Number> six = new XYChart.Series<>();
+            six.setName("6-7");
+            XYChart.Series<String, Number> eight = new XYChart.Series<>();
+            eight.setName("8-9");
+            XYChart.Series<String, Number> ten = new XYChart.Series<>();
+            ten.setName("10-11");
+            XYChart.Series<String, Number> twelve = new XYChart.Series<>();
+            twelve.setName("12-13");
+            XYChart.Series<String, Number> fourteen = new XYChart.Series<>();
+            fourteen.setName("14-15");
+            XYChart.Series<String, Number> sixteen = new XYChart.Series<>();
+            sixteen.setName("16-17");
+            XYChart.Series<String, Number> eighteen = new XYChart.Series<>();
+            eighteen.setName("18-19");
+            XYChart.Series<String, Number> twenty = new XYChart.Series<>();
+            twenty.setName("20-21");
+            XYChart.Series<String, Number> twenty_two = new XYChart.Series<>();
+            twenty_two.setName("22-23");
+            List<String> days = new ArrayList<>();
+            days.add("E");
+            days.add("T");
+            days.add("K");
+            days.add("N");
+            days.add("R");
+            days.add("L");
+            days.add("P");
+            mapHourOccurrencesByEachDay = new HashMap<>();
+            for (String day : days) {
+                Map<String, Integer> mapOfTimes = new HashMap<>();
+                mapOfTimes.put("0-1", 0);
+                mapOfTimes.put("2-3", 0);
+                mapOfTimes.put("4-5", 0);
+                mapOfTimes.put("6-7", 0);
+                mapOfTimes.put("8-9", 0);
+                mapOfTimes.put("10-11", 0);
+                mapOfTimes.put("12-13", 0);
+                mapOfTimes.put("14-15", 0);
+                mapOfTimes.put("16-17", 0);
+                mapOfTimes.put("18-19", 0);
+                mapOfTimes.put("20-21", 0);
+                mapOfTimes.put("22-23", 0);
+                mapHourOccurrencesByEachDay.put(day, mapOfTimes);
+            }
+            for (Log log : filteredResults) {
+                DateTimeFormatter dateTimeFormatter;
+                String[] logArray = log.getTime().split(" ");
+                if (logArray[0].length() == 9) { dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy"); }
+                else { dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); }
+                LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
+                DateTimeFormatter dateTimeFormatterTime = DateTimeFormatter.ofPattern("HH.mm");
+                LocalTime logTime = LocalTime.parse(logArray[1], dateTimeFormatterTime);
+                if (logTime.getHour() == 0 || logTime.getHour() == 1) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("0-1", mapHourOccurrencesByEachDay.get("E").get("0-1") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("0-1", mapHourOccurrencesByEachDay.get("T").get("0-1") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("0-1", mapHourOccurrencesByEachDay.get("K").get("0-1") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("0-1", mapHourOccurrencesByEachDay.get("N").get("0-1") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("0-1", mapHourOccurrencesByEachDay.get("R").get("0-1") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("0-1", mapHourOccurrencesByEachDay.get("L").get("0-1") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("0-1", mapHourOccurrencesByEachDay.get("P").get("0-1") + 1); }
+                }
+                else if (logTime.getHour() == 2 || logTime.getHour() == 3) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("2-3", mapHourOccurrencesByEachDay.get("E").get("2-3") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("2-3", mapHourOccurrencesByEachDay.get("T").get("2-3") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("2-3", mapHourOccurrencesByEachDay.get("K").get("2-3") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("2-3", mapHourOccurrencesByEachDay.get("N").get("2-3") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("2-3", mapHourOccurrencesByEachDay.get("R").get("2-3") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("2-3", mapHourOccurrencesByEachDay.get("L").get("2-3") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("2-3", mapHourOccurrencesByEachDay.get("P").get("2-3") + 1); }
+                }
+                else if (logTime.getHour() == 4 || logTime.getHour() == 5) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("4-5", mapHourOccurrencesByEachDay.get("E").get("4-5") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("4-5", mapHourOccurrencesByEachDay.get("T").get("4-5") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("4-5", mapHourOccurrencesByEachDay.get("K").get("4-5") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("4-5", mapHourOccurrencesByEachDay.get("N").get("4-5") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("4-5", mapHourOccurrencesByEachDay.get("R").get("4-5") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("4-5", mapHourOccurrencesByEachDay.get("L").get("4-5") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("4-5", mapHourOccurrencesByEachDay.get("P").get("4-5") + 1); }
+                }
+                else if (logTime.getHour() == 6 || logTime.getHour() == 7) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("6-7", mapHourOccurrencesByEachDay.get("E").get("6-7") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("6-7", mapHourOccurrencesByEachDay.get("T").get("6-7") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("6-7", mapHourOccurrencesByEachDay.get("K").get("6-7") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("6-7", mapHourOccurrencesByEachDay.get("N").get("6-7") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("6-7", mapHourOccurrencesByEachDay.get("R").get("6-7") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("6-7", mapHourOccurrencesByEachDay.get("L").get("6-7") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("6-7", mapHourOccurrencesByEachDay.get("P").get("6-7") + 1); }
+                }
+                else if (logTime.getHour() == 8 || logTime.getHour() == 9) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("8-9", mapHourOccurrencesByEachDay.get("E").get("8-9") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("8-9", mapHourOccurrencesByEachDay.get("T").get("8-9") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("8-9", mapHourOccurrencesByEachDay.get("K").get("8-9") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("8-9", mapHourOccurrencesByEachDay.get("N").get("8-9") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("8-9", mapHourOccurrencesByEachDay.get("R").get("8-9") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("8-9", mapHourOccurrencesByEachDay.get("L").get("8-9") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("8-9", mapHourOccurrencesByEachDay.get("P").get("8-9") + 1); }
+                }
+                else if (logTime.getHour() == 10 || logTime.getHour() == 11) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("10-11", mapHourOccurrencesByEachDay.get("E").get("10-11") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("10-11", mapHourOccurrencesByEachDay.get("T").get("10-11") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("10-11", mapHourOccurrencesByEachDay.get("K").get("10-11") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("10-11", mapHourOccurrencesByEachDay.get("N").get("10-11") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("10-11", mapHourOccurrencesByEachDay.get("R").get("10-11") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("10-11", mapHourOccurrencesByEachDay.get("L").get("10-11") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("10-11", mapHourOccurrencesByEachDay.get("P").get("10-11") + 1); }
+                }
+                else if (logTime.getHour() == 12 || logTime.getHour() == 13) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("12-13", mapHourOccurrencesByEachDay.get("E").get("12-13") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("12-13", mapHourOccurrencesByEachDay.get("T").get("12-13") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("12-13", mapHourOccurrencesByEachDay.get("K").get("12-13") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("12-13", mapHourOccurrencesByEachDay.get("N").get("12-13") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("12-13", mapHourOccurrencesByEachDay.get("R").get("12-13") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("12-13", mapHourOccurrencesByEachDay.get("L").get("12-13") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("12-13", mapHourOccurrencesByEachDay.get("P").get("12-13") + 1); }
+                }
+                else if (logTime.getHour() == 14 || logTime.getHour() == 15) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("14-15", mapHourOccurrencesByEachDay.get("E").get("14-15") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("14-15", mapHourOccurrencesByEachDay.get("T").get("14-15") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("14-15", mapHourOccurrencesByEachDay.get("K").get("14-15") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("14-15", mapHourOccurrencesByEachDay.get("N").get("14-15") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("14-15", mapHourOccurrencesByEachDay.get("R").get("14-15") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("14-15", mapHourOccurrencesByEachDay.get("L").get("14-15") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("14-15", mapHourOccurrencesByEachDay.get("P").get("14-15") + 1); }
+                }
+                else if (logTime.getHour() == 16 || logTime.getHour() == 17) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("16-17", mapHourOccurrencesByEachDay.get("E").get("16-17") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("16-17", mapHourOccurrencesByEachDay.get("T").get("16-17") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("16-17", mapHourOccurrencesByEachDay.get("K").get("16-17") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("16-17", mapHourOccurrencesByEachDay.get("N").get("16-17") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("16-17", mapHourOccurrencesByEachDay.get("R").get("16-17") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("16-17", mapHourOccurrencesByEachDay.get("L").get("16-17") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("16-17", mapHourOccurrencesByEachDay.get("P").get("16-17") + 1); }
+                }
+                else if (logTime.getHour() == 18 || logTime.getHour() == 19) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("18-19", mapHourOccurrencesByEachDay.get("E").get("18-19") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("18-19", mapHourOccurrencesByEachDay.get("T").get("18-19") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("18-19", mapHourOccurrencesByEachDay.get("K").get("18-19") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("18-19", mapHourOccurrencesByEachDay.get("N").get("18-19") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("18-19", mapHourOccurrencesByEachDay.get("R").get("18-19") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("18-19", mapHourOccurrencesByEachDay.get("L").get("18-19") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("18-19", mapHourOccurrencesByEachDay.get("P").get("18-19") + 1); }
+                }
+                else if (logTime.getHour() == 20 || logTime.getHour() == 21) {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("20-21", mapHourOccurrencesByEachDay.get("E").get("20-21") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("20-21", mapHourOccurrencesByEachDay.get("T").get("20-21") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("20-21", mapHourOccurrencesByEachDay.get("K").get("20-21") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("20-21", mapHourOccurrencesByEachDay.get("N").get("20-21") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("20-21", mapHourOccurrencesByEachDay.get("R").get("20-21") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("20-21", mapHourOccurrencesByEachDay.get("L").get("20-21") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("22-23", mapHourOccurrencesByEachDay.get("P").get("20-21") + 1); }
+                }
+                else {
+                    if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) { mapHourOccurrencesByEachDay.get("E").put("22-23", mapHourOccurrencesByEachDay.get("E").get("22-23") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) { mapHourOccurrencesByEachDay.get("T").put("22-23", mapHourOccurrencesByEachDay.get("T").get("22-23") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) { mapHourOccurrencesByEachDay.get("K").put("22-23", mapHourOccurrencesByEachDay.get("K").get("22-23") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) { mapHourOccurrencesByEachDay.get("N").put("22-23", mapHourOccurrencesByEachDay.get("N").get("22-23") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) { mapHourOccurrencesByEachDay.get("R").put("22-23", mapHourOccurrencesByEachDay.get("R").get("22-23") + 1); }
+                    else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) { mapHourOccurrencesByEachDay.get("L").put("22-23", mapHourOccurrencesByEachDay.get("L").get("22-23") + 1); }
+                    else { mapHourOccurrencesByEachDay.get("P").put("22-23", mapHourOccurrencesByEachDay.get("P").get("22-23") + 1); }
+                }
+            }
+            for (int j = 0; j < 12; j++) {
+                if (j == 0) {
+                    zero.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("0-1"))));
+                    zero.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("0-1"))));
+                }
+                else if (j == 1) {
+                    two.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("2-3"))));
+                    two.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("2-3"))));
+                }
+                else if (j == 2) {
+                    four.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("4-5"))));
+                    four.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("4-5"))));
+                }
+                else if (j == 3) {
+                    six.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("6-7"))));
+                    six.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("6-7"))));
+                }
+                else if (j == 4) {
+                    eight.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("8-9"))));
+                    eight.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("8-9"))));
+                }
+                else if (j == 5) {
+                    ten.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("10-11"))));
+                    ten.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("10-11"))));
+                }
+                else if (j == 6) {
+                    twelve.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("12-13"))));
+                    twelve.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("12-13"))));
+                }
+                else if (j == 7) {
+                    fourteen.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("14-15"))));
+                    fourteen.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("14-15"))));
+                }
+                else if (j == 8) {
+                    sixteen.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("16-17"))));
+                    sixteen.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("16-17"))));
+                }
+                else if (j == 9) {
+                    eighteen.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("18-19"))));
+                    eighteen.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("18-19"))));
+                }
+                else if (j == 10) {
+                    twenty.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("20-21"))));
+                    twenty.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("20-21"))));
+                }
+                else {
+                    twenty_two.getData().add((new XYChart.Data<>("E", mapHourOccurrencesByEachDay.get("E").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("T", mapHourOccurrencesByEachDay.get("T").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("K", mapHourOccurrencesByEachDay.get("K").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("N", mapHourOccurrencesByEachDay.get("N").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("R", mapHourOccurrencesByEachDay.get("R").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("L", mapHourOccurrencesByEachDay.get("L").get("22-23"))));
+                    twenty_two.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("22-23"))));
+                }
+            }
+            stackedBarChartVisitsPerDayAndHour.setMinWidth(800);
+            stackedBarChartVisitsPerDayAndHour.setTitle("Kui palju iga päeva kohta käivaid kirjeid esineb logides");
+            stackedBarChartVisitsPerDayAndHour.getData().add(zero);
+            stackedBarChartVisitsPerDayAndHour.getData().add(two);
+            stackedBarChartVisitsPerDayAndHour.getData().add(four);
+            stackedBarChartVisitsPerDayAndHour.getData().add(six);
+            stackedBarChartVisitsPerDayAndHour.getData().add(eight);
+            stackedBarChartVisitsPerDayAndHour.getData().add(ten);
+            stackedBarChartVisitsPerDayAndHour.getData().add(twelve);
+            stackedBarChartVisitsPerDayAndHour.getData().add(fourteen);
+            stackedBarChartVisitsPerDayAndHour.getData().add(sixteen);
+            stackedBarChartVisitsPerDayAndHour.getData().add(eighteen);
+            stackedBarChartVisitsPerDayAndHour.getData().add(twenty);
+            stackedBarChartVisitsPerDayAndHour.getData().add(twenty_two);
+        });
+    }
     private void displayBarChartVisitsPerHour() {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesVisitsPerHour = new XYChart.Series<>();
-            dataSeriesVisitsPerHour.setName("Kui palju külastatakse Moodle't erinetave ajavahemike jooksul.");
             time = new ArrayList<>();
             timeOccurrences = new ArrayList<>();
             time.add("0-1");
@@ -1423,118 +2013,78 @@ public class Main extends Application {
             for (int i = 0; i < time.size(); i++) {
                 dataSeriesVisitsPerHour.getData().add(new XYChart.Data<>(time.get(i), timeOccurrences.get(i)));
             }
-            barChartVisitsPerHour.setMinWidth(900);
+            barChartVisitsPerHour.setMinWidth(800);
+            barChartVisitsPerHour.setTitle("Kui palju erinevate ajavahemike kohta käivaid kirjeid esineb logides");
+            barChartVisitsPerHour.setLegendVisible(false);
             barChartVisitsPerHour.getData().add(dataSeriesVisitsPerHour);
         });
     }
-
-    private void displayBarChartVisitsPerWeek() {
+    private void displayScatterChartCorrelationBetweenLogsAndGrades() {
         Platform.runLater(() -> {
-            XYChart.Series<String, Number> dataSeriesVisitsPerWeek = new XYChart.Series<>();
-            dataSeriesVisitsPerWeek.setName("Kui palju külastatakse Moodle't erinevatel õppenädalatel.");
-            weekOccurrences = new ArrayList<>();
-            for (int i = 0; i < 52; i++) {
-                weekOccurrences.add(0);
+            XYChart.Series<Number, Number> dataSeriesCorrelation = new XYChart.Series<>();
+            List<Map<String, String>> listOfGradesData = gradesProcessing.getGrades();
+            listOfCorrelationData = new ArrayList<>();
+            listOfGradesData.remove(0);
+            for (String student : dataMapStudentName.keySet()) {
+                Map<String, Double> hashMap = new HashMap<>();
+                for (Map<String, String> map : listOfGradesData) {
+                    if (map.get("Name").equals(student)) {
+                        if (!map.get("Hinne (Punktid)").equals("-")) {
+                            dataSeriesCorrelation.getData().add(new XYChart.Data<>(dataMapStudentName.get(student), Double.valueOf(map.get("Hinne (Punktid)"))));
+                            hashMap.put("Logs", Double.valueOf(dataMapStudentName.get(student)));
+                            hashMap.put("Points", Double.valueOf(map.get("Hinne (Punktid)")));
+                            listOfCorrelationData.add(hashMap);
+                        }
+                        break;
+                    }
+                }
             }
-            for (Log log : filteredResults) {
-                DateTimeFormatter dateTimeFormatter;
-                String[] logArray = log.getTime().split(" ");
-                if (logArray[0].length() == 9) { dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy"); }
-                else { dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); }
-                LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
-                WeekFields weekFields = WeekFields.of(Locale.getDefault());
-                int weekNumber = localDate.get(weekFields.weekOfWeekBasedYear());
-                weekOccurrences.add(weekNumber-1, weekOccurrences.get(weekNumber-1) + 1);
-                weekOccurrences.remove(weekNumber);
-            }
-            for (int i = 0; i < weekOccurrences.size(); i++) {
-                dataSeriesVisitsPerWeek.getData().add(new XYChart.Data<>(String.valueOf(i+1), weekOccurrences.get(i)));
-            }
-            barChartVisitsPerWeek.setMinWidth(900);
-            barChartVisitsPerWeek.getData().add(dataSeriesVisitsPerWeek);
+            scatterChartCorrelationBetweenLogsAndGrades.setMinWidth(800);
+            scatterChartCorrelationBetweenLogsAndGrades.setTitle("Hinnete ja logide vaheline suhe");
+            scatterChartCorrelationBetweenLogsAndGrades.setLegendVisible(false);
+            scatterChartCorrelationBetweenLogsAndGrades.getData().add(dataSeriesCorrelation);
         });
     }
-
-    private void displayBarChartVisitsPerDay() {
-        Platform.runLater(() -> {
-            XYChart.Series<String, Number> dataSeriesVisitsPerDay = new XYChart.Series<>();
-            dataSeriesVisitsPerDay.setName("Kui palju külastatakse Moodle't erinevatel päevadel.");
-            day = new ArrayList<>();
-            dayOccurrences = new ArrayList<>();
-            day.add("E");
-            dayOccurrences.add(0);
-            day.add("T");
-            dayOccurrences.add(0);
-            day.add("K");
-            dayOccurrences.add(0);
-            day.add("N");
-            dayOccurrences.add(0);
-            day.add("R");
-            dayOccurrences.add(0);
-            day.add("L");
-            dayOccurrences.add(0);
-            day.add("P");
-            dayOccurrences.add(0);
-            for (Log log : filteredResults) {
-                DateTimeFormatter dateTimeFormatter;
-                String[] logArray = log.getTime().split(" ");
-                if (logArray[0].length() == 9) {
-                    dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy");
-                }
-                else {
-                    dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-                }
-                LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
-                if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) {
-                    dayOccurrences.add(0, dayOccurrences.get(0) + 1);
-                    dayOccurrences.remove(1);
-                }
-                else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) {
-                    dayOccurrences.add(1, dayOccurrences.get(1) + 1);
-                    dayOccurrences.remove(2);
-                }
-                else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) {
-                    dayOccurrences.add(2, dayOccurrences.get(2) + 1);
-                    dayOccurrences.remove(3);
-                }
-                else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) {
-                    dayOccurrences.add(3, dayOccurrences.get(3) + 1);
-                    dayOccurrences.remove(4);
-                }
-                else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) {
-                    dayOccurrences.add(4, dayOccurrences.get(4) + 1);
-                    dayOccurrences.remove(5);
-                }
-                else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
-                    dayOccurrences.add(5, dayOccurrences.get(5) + 1);
-                    dayOccurrences.remove(6);
-                }
-                else {
-                    dayOccurrences.add(6, dayOccurrences.get(6) + 1);
-                    dayOccurrences.remove(7);
-                }
-            }
-            for (int i = 0; i < day.size(); i++) {
-                dataSeriesVisitsPerDay.getData().add(new XYChart.Data<>(day.get(i), dayOccurrences.get(i)));
-            }
-            barChartVisitsPerDay.setMinWidth(900);
-            barChartVisitsPerDay.getData().add(dataSeriesVisitsPerDay);
-        });
+    // Display Alerts
+    private void displayErrorAlert(String header, String content) {
+        Alert alertDisplayError = new Alert(Alert.AlertType.ERROR);
+        alertDisplayError.setTitle("Viga!");
+        alertDisplayError.setHeaderText(header);
+        alertDisplayError.setContentText(content);
+        alertDisplayError.show();
     }
-
-    private void displayAlert(String title, String header, String content) {
-        Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.ERROR);
-        alertTimeHoursFromAfterTimeHoursTo.setTitle(title);
-        alertTimeHoursFromAfterTimeHoursTo.setHeaderText(header);
-        alertTimeHoursFromAfterTimeHoursTo.setContentText(content);
-        alertTimeHoursFromAfterTimeHoursTo.show();
-    }
-
-    private void displayInformation(String title, String header, String content) {
+    private void displayInformationAlert() {
         Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.INFORMATION);
-        alertTimeHoursFromAfterTimeHoursTo.setTitle(title);
-        alertTimeHoursFromAfterTimeHoursTo.setHeaderText(header);
-        alertTimeHoursFromAfterTimeHoursTo.setContentText(content);
+        alertTimeHoursFromAfterTimeHoursTo.setTitle("Fail salvestati!");
+        alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Fail on salvestatud!");
+        alertTimeHoursFromAfterTimeHoursTo.setContentText("Fail salvestati programmiga samasse kausta.");
         alertTimeHoursFromAfterTimeHoursTo.show();
+    }
+    // Other methods
+    private void makeLocalDateAndTimeNull() {
+        localDateFrom = null;
+        localDateTo = null;
+        localTimeFrom = null;
+        localTimeTo = null;
+    }
+    private void setListViewSelectionModelAndSize(ListView<String> listView) {
+        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listView.setMinWidth(800);
+        listView.setMaxWidth(800);
+    }
+    private void runMethodsForTabView() {
+        displayTableViewLogs();
+        displayBarChartEventName();
+        displayBarChartEventContext();
+        displayBarChartStudentGroup();
+        displayBarChartStudentName();
+        displayTableViewStudentGrades();
+        displayBarChartVisitsPerHour();
+        displayStackedBarChartVisitsPerWeekAndDay();
+        displayStackedBarChartVisitsPerDayAndHour();
+        displayTableViewWeekAndDay();
+        displayTableViewDayAndHour();
+        displayScatterChartCorrelationBetweenLogsAndGrades();
+        displayTableViewCorrelation();
     }
 }
