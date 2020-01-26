@@ -7,11 +7,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cdb932d9-7e58-4d94-93a9-e7b232ef17da" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/artifacts/Programm_jar.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Programm/MainLogic/Main.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/MainLogic/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/MainLogic/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/artifacts/Programm_jar/Programm.jar" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/Programm/META-INF/MANIFEST.MF" beforeDir="false" />
     </list>
     <ignored path="JavaFxApplication.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -147,8 +146,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="192">
-              <caret line="237" column="33" lean-forward="true" selection-start-line="237" selection-start-column="33" selection-end-line="237" selection-end-column="33" />
+            <state relative-caret-position="3629">
+              <caret line="1635" column="5" selection-start-line="1635" selection-start-column="5" selection-end-line="1635" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#14894#15823#0" />
@@ -358,7 +357,7 @@
     <property name="dynamic.classpath" value="false" />
     <property name="extract.method.default.visibility" value="private" />
     <property name="last_opened_file_path" value="C:/Program Files/Java/gembox-spreadsheet.jar!/" />
-    <property name="project.structure.last.edited" value="Libraries" />
+    <property name="project.structure.last.edited" value="Artifacts" />
     <property name="project.structure.proportion" value="0.15042573" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="recentsLimit" value="5" />
@@ -596,12 +595,12 @@
       <workItem from="1579886013964" duration="595000" />
       <workItem from="1579957072766" duration="29558000" />
       <workItem from="1580042369378" duration="14853000" />
-      <workItem from="1580060658692" duration="9377000" />
+      <workItem from="1580060658692" duration="10646000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="376687000" />
+    <option name="totallyTimeSpent" value="377956000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
@@ -836,8 +835,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="237" column="33" lean-forward="true" selection-start-line="237" selection-start-column="33" selection-end-line="237" selection-end-column="33" />
+        <state relative-caret-position="3629">
+          <caret line="1635" column="5" selection-start-line="1635" selection-start-column="5" selection-end-line="1635" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#14894#15823#0" />
@@ -912,6 +911,7 @@
             <option name="proportions">
               <list>
                 <option value="0.2" />
+                <option value="0.5" />
               </list>
             </option>
           </splitter-proportions>
