@@ -8,74 +8,53 @@ public class MoodleLogsProcessing {
     private List<Map<String, String>> logs = new ArrayList<>();
     private Set<String> user = new HashSet<>();
     private Set<String> eventContext = new HashSet<>();
-    private Set<String> component = new HashSet<>();
-    private Set<String> eventName = new HashSet<>();
-
+    // Process all the logs when given the file name using BufferReader
     public void processLogs(File file) {
         String line;
         String[] log = new String[0];
-        int skipLine = 0;
-
         try {
             BufferedReader br = new BufferedReader(new FileReader(file));
             while ((line = br.readLine()) != null) {
-                if (skipLine != 0) {
-                    skipLine--;
-                }
-                else {
-                    try {
-                        log = makeQuotedSentencesIntoOne(line);
-                        if (log.length == 9) {
-                            addData(log);
-                        } else if (log.length == 8 && line.substring(line.length() - 4).equals("cli,")) {
-                            addData(log);
-                        } else {
-                            throw new ArrayIndexOutOfBoundsException();
-                        }
-                    } catch (ArrayIndexOutOfBoundsException e) {
-                        while (log.length != 9) {
-                            line = line.replace("\n", "");
-                            line = line + br.readLine();
-                            line = line.replace("            ", " ");
-                            skipLine++;
-                            log = makeQuotedSentencesIntoOne(line);
-                        }
+                try {
+                    log = makeQuotedSentencesIntoOne(line);
+                    if (log.length == 9) {
                         addData(log);
+                    } else if (log.length == 8 && line.substring(line.length() - 4).equals("cli,")) {
+                        addData(log);
+                    } else {
+                        throw new ArrayIndexOutOfBoundsException();
                     }
+                } catch (ArrayIndexOutOfBoundsException e) {
+                    while (!(log.length == 9) && !(log.length == 8 && line.substring(line.length() - 4).equals("cli,"))) {
+                        line = line.replace("\n", "");
+                        line = line + br.readLine();
+                        line = line.replace("            ", " ");
+                        log = makeQuotedSentencesIntoOne(line);
+                    }
+                    addData(log);
                 }
             }
         }
-        catch (IOException e) {
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
-
+    // Add all the data from log files into variables
     private void addData(String[] log) {
         Map<String, String> oneLog = new HashMap<>();
-        List<String> data = new ArrayList<>();
         if (log[3].startsWith("\"")) {
             log[3] = log[3].replaceFirst("\"", "");
             log[3] = log[3].substring(0, log[3].length()-1);
         }
-        data.add(log[0]);
-        data.add(log[1]);
-        data.add(log[3]);
-        data.add(log[4]);
-        data.add(log[5]);
-
-        oneLog.put("Time", log[0]);
-        oneLog.put("Name", log[1]);
+        oneLog.put("Time", log[0].replaceAll("\"", ""));
+        oneLog.put("Name", log[1].replaceAll("\"", ""));
         oneLog.put("Event context", log[3]);
-        oneLog.put("Component", log[4]);
-        oneLog.put("Event name", log[5]);
+        oneLog.put("Event name", log[5].replaceAll("\"", ""));
         logs.add(oneLog);
-        user.add(data.get(1));
-        eventContext.add(data.get(2));
-        component.add(data.get(3));
-        eventName.add(data.get(4));
+        user.add(log[1].replaceAll("\"", ""));
+        eventContext.add(log[3]);
     }
-
-
+    // Make logs that have extra commas into the right shape for an array
     private String[] makeQuotedSentencesIntoOne(String line) {
         String separator = ",";
         String[] log = line.split(separator);
@@ -103,32 +82,14 @@ public class MoodleLogsProcessing {
         }
         return log;
     }
-
+    // Clear all logs data, so new logs could be processed
     public void clearAllLogData() {
         logs = new ArrayList<>();
         user = new HashSet<>();
         eventContext = new HashSet<>();
-        component = new HashSet<>();
-        eventName = new HashSet<>();
     }
-
-    public List<Map<String, String>> getLogs() {
-        return logs;
-    }
-
-    public Set<String> getUser() {
-        return user;
-    }
-
-    public Set<String> getEventContext() {
-        return eventContext;
-    }
-
-    public Set<String> getComponent() {
-        return component;
-    }
-
-    public Set<String> getEventName() {
-        return eventName;
-    }
+    // Getters to get the log parameters in other classes
+    public List<Map<String, String>> getLogs() { return logs; }
+    public Set<String> getUser() { return user; }
+    public Set<String> getEventContext() { return eventContext; }
 }

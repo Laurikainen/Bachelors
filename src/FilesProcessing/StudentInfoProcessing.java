@@ -5,12 +5,12 @@ import java.io.*;
 import java.util.*;
 
 public class StudentInfoProcessing {
+
     private List<Map<String, String>> students = new ArrayList<>();
     private Map<String, String> studentAndGroup = new HashMap<>();
     private List<String> studentName = new ArrayList<>();
     private Set<String> studentGroup = new HashSet<>();
-    private Set<String> studentCurriculum = new HashSet<>();
-
+    // Process all the students when given the file name using BufferReader
     public void processStudents(File file) {
         try {
             File tmpStudentFile = new File("newStudents.html");
@@ -43,9 +43,6 @@ public class StudentInfoProcessing {
                         name.append(column.text());
                         studentName.add(String.valueOf(name));
                         student.put("Name", String.valueOf(name));
-                    } else if (columnNumber == 5) {
-                        studentCurriculum.add(column.text());
-                        student.put("Curriculum", column.text());
                     } else if (columnNumber == 6) {
                         if (column.text().equals("")) {
                             studentGroup.add("-");
@@ -63,38 +60,23 @@ public class StudentInfoProcessing {
                     columnNumber++;
                 }
             }
-            boolean value = tmpStudentFile.delete();
+            if (!tmpStudentFile.delete()) {
+                System.out.println("Temporary student file was not deleted!");
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
     }
-
+    // Clear all student data, so new student could be processed
     public void clearAllStudentData() {
         students = new ArrayList<>();
         studentName = new ArrayList<>();
         studentGroup = new HashSet<>();
-        studentCurriculum = new HashSet<>();
         studentAndGroup = new HashMap<>();
     }
-
-    public List<String> getStudentName() {
-        return studentName;
-    }
-
-    public Set<String> getStudentGroup() {
-        return studentGroup;
-    }
-
-    public Set<String> getStudentCurriculum() {
-        return studentCurriculum;
-    }
-
-    public Map<String, String> getStudentAndGroup() {
-        return studentAndGroup;
-    }
-
-    public List<Map<String, String>> getStudents() {
-        return students;
-    }
+    // Getters to get the student parameters in other classes
+    public Set<String> getStudentGroup() { return studentGroup; }
+    public Map<String, String> getStudentAndGroup() { return studentAndGroup; }
+    public List<Map<String, String>> getStudents() { return students; }
 }

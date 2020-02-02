@@ -16,9 +16,8 @@ public class GradesProcessing {
     private List<Map<String, String>> grades = new ArrayList<>();
     private List<String> columnNames = new ArrayList<>();
     private List<List<String>> studentGrades = new ArrayList<>();
-
+    // Process all the grades when given the file name using FileInputStream
     public void processGrades(File file) {
-
         try {
             FileInputStream excelFile = new FileInputStream(file);
             Workbook workbook = new XSSFWorkbook(excelFile);
@@ -72,22 +71,14 @@ public class GradesProcessing {
         columnNames.remove(0);
         columnNames.add(0, "Name");
     }
-
+    // Clear all grades data, so new grades could be processed
     public void clearAllGradeData() {
         grades = new ArrayList<>();
         columnNames = new ArrayList<>();
         studentGrades =  new ArrayList<>();
     }
-
-    public List<Map<String, String>> getGrades() {
-        return grades;
-    }
-
-    public List<String> getColumnNames() {
-        return columnNames;
-    }
-
-    public List<List<String>> getStudentGrades() {
-        return studentGrades;
-    }
+    // Getters to get the grades parameters in other classes
+    public List<Map<String, String>> getGrades() { return grades; }
+    public List<String> getColumnNames() { return columnNames; }
+    public List<List<String>> getStudentGrades() { return studentGrades; }
 }

@@ -92,6 +92,7 @@ public class Main extends Application {
     private ScatterChart<Number, Number> scatterChartCorrelationBetweenLogsAndGrades = new ScatterChart<>(xAxisCorrelationBetweenLogsAndGrades, yAxisCorrelationBetweenLogsAndGrades);
     private StackedBarChart<String, Number> stackedBarChartVisitsPerWeekAndDay = new StackedBarChart<>(xAxisVisitsPerWeekAndDay, yAxisVisitsPerWeekAndDay);
     private StackedBarChart<String, Number> stackedBarChartVisitsPerDayAndHour = new StackedBarChart<>(xAxisVisitsPerDayAndHour, yAxisVisitsPerDayAndHour);
+    private Label displayCoefficient = new Label();
 
     public static void main(String[] args) {
         launch(args);
@@ -164,6 +165,7 @@ public class Main extends Application {
         Label labelDateTo = new Label("Lõpukuupäev ");
         Label labelTimeFrom = new Label("Alguskellaaeg ");
         Label labelTimeTo = new Label("Lõpukellaaeg ");
+        Label labelExtraInfoAboutWeeksBarChart = new Label("Nädalad on aasta lõikes, mitte õppeaasta lõikes");
         // All the used Buttons
         Button buttonChooseStudentFile = new Button("Ava õpilaste fail");
         Button buttonChooseGradeFile = new Button("Ava hinnete fail");
@@ -439,8 +441,10 @@ public class Main extends Application {
         gridPaneTabVisitsPerHour.add(barChartVisitsPerHour, 0, 0);
         gridPaneTabCorrelationBetweenLogsAndGrades.add(tableViewCorrelation, 0, 1);
         gridPaneTabCorrelationBetweenLogsAndGrades.add(scatterChartCorrelationBetweenLogsAndGrades, 0, 0);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(displayCoefficient, 0, 2);
         gridPaneTabVisitsPerWeekAndDay.add(stackedBarChartVisitsPerWeekAndDay, 0, 0);
         gridPaneTabVisitsPerDayAndHour.add(stackedBarChartVisitsPerDayAndHour, 0, 0);
+        gridPaneTabVisitsPerWeekAndDay.add(labelExtraInfoAboutWeeksBarChart, 0, 2);
         gridPaneTabVisitsPerWeekAndDay.add(tableViewWeekAndDay, 0, 1);
         gridPaneTabVisitsPerDayAndHour.add(tableViewDayAndHour, 0, 1);
         gridPaneTabAllSelectedData.add(saveTableViewLogData, 0, 1);
@@ -448,8 +452,8 @@ public class Main extends Application {
         gridPaneTabStudentGroupAndName.add(hBoxBarChartStudent, 0, 2);
         gridPaneTabStudentGrades.add(saveTableViewGradeData, 0, 1);
         gridPaneTabVisitsPerHour.add(saveBarChartVisitsPerHour, 0, 1);
-        gridPaneTabCorrelationBetweenLogsAndGrades.add(saveTableViewCorrelationBetweenLogsAndGrades, 0, 2);
-        gridPaneTabVisitsPerWeekAndDay.add(hBoxWeekAndDay, 0, 2);
+        gridPaneTabCorrelationBetweenLogsAndGrades.add(saveTableViewCorrelationBetweenLogsAndGrades, 0, 3);
+        gridPaneTabVisitsPerWeekAndDay.add(hBoxWeekAndDay, 0, 3);
         gridPaneTabVisitsPerDayAndHour.add(hBoxDayAndHour, 0, 2);
         gridPaneForTabPane.add(hBoxGoBackToTimeFrame, 0, 1);
         gridPaneEventContext.setVgap(15);
@@ -558,6 +562,13 @@ public class Main extends Application {
                 alertFileNotFound.show();
             }
             if (alertFileNotFound == null) {
+                if (!gradesProcessing.getColumnNames().contains("Hinne (Punktid)")) {
+                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.INFORMATION);
+                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Vigane hinnete fail!");
+                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Hinnete failis puudub veerg - \"Hinne (Punktid)\"!");
+                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Korrelatsiooni pole võimalik arvutada.");
+                    alertTimeHoursFromAfterTimeHoursTo.show();
+                }
                 displayEventContext();
                 stage.setScene(sceneLogContext);
             }
@@ -741,6 +752,7 @@ public class Main extends Application {
             tableViewWeekAndDay.getColumns().clear();
             tableViewDayAndHour.getColumns().clear();
             tableViewCorrelation.getColumns().clear();
+            displayCoefficient.setText("");
             stage.setScene(sceneTimeFrame);
         });
         // Extra Button actions
@@ -1623,7 +1635,7 @@ public class Main extends Application {
                 }
             }
             stackedBarChartVisitsPerWeekAndDay.setMinWidth(800);
-            stackedBarChartVisitsPerWeekAndDay.setTitle("Kui palju iga nädala kohta käivaid kirjeid esineb logides");
+            stackedBarChartVisitsPerWeekAndDay.setTitle("Kui palju iga nädala ja päeva kohta käivaid kirjeid esineb logides");
             stackedBarChartVisitsPerWeekAndDay.getData().add(monday);
             stackedBarChartVisitsPerWeekAndDay.getData().add(tuesday);
             stackedBarChartVisitsPerWeekAndDay.getData().add(wednesday);
@@ -1913,7 +1925,7 @@ public class Main extends Application {
                 }
             }
             stackedBarChartVisitsPerDayAndHour.setMinWidth(800);
-            stackedBarChartVisitsPerDayAndHour.setTitle("Kui palju iga päeva kohta käivaid kirjeid esineb logides");
+            stackedBarChartVisitsPerDayAndHour.setTitle("Kui palju iga päeva ja tunni kohta käivaid kirjeid esineb logides");
             stackedBarChartVisitsPerDayAndHour.getData().add(zero);
             stackedBarChartVisitsPerDayAndHour.getData().add(two);
             stackedBarChartVisitsPerDayAndHour.getData().add(four);
@@ -2021,6 +2033,8 @@ public class Main extends Application {
     }
     private void displayScatterChartCorrelationBetweenLogsAndGrades() {
         Platform.runLater(() -> {
+            List<Double> correlationX = new ArrayList<>();
+            List<Double> correlationY = new ArrayList<>();
             XYChart.Series<Number, Number> dataSeriesCorrelation = new XYChart.Series<>();
             List<Map<String, String>> listOfGradesData = gradesProcessing.getGrades();
             listOfCorrelationData = new ArrayList<>();
@@ -2034,6 +2048,8 @@ public class Main extends Application {
                             hashMap.put("Logs", Double.valueOf(dataMapStudentName.get(student)));
                             hashMap.put("Points", Double.valueOf(map.get("Hinne (Punktid)")));
                             listOfCorrelationData.add(hashMap);
+                            correlationX.add(Double.valueOf(dataMapStudentName.get(student)));
+                            correlationY.add(Double.valueOf(map.get("Hinne (Punktid)")));
                         }
                         break;
                     }
@@ -2043,6 +2059,7 @@ public class Main extends Application {
             scatterChartCorrelationBetweenLogsAndGrades.setTitle("Hinnete ja logide vaheline suhe");
             scatterChartCorrelationBetweenLogsAndGrades.setLegendVisible(false);
             scatterChartCorrelationBetweenLogsAndGrades.getData().add(dataSeriesCorrelation);
+            displayCoefficient.setText("Korrelatsioonikordaja on " + calculateCorrelationCoefficient(correlationX, correlationY));
         });
     }
     // Display Alerts
@@ -2086,5 +2103,23 @@ public class Main extends Application {
         displayTableViewDayAndHour();
         displayScatterChartCorrelationBetweenLogsAndGrades();
         displayTableViewCorrelation();
+    }
+    private Double calculateCorrelationCoefficient(List<Double> correlationX, List<Double> correlationY) {
+        int length = correlationX.size();
+        double sum_X = 0, sum_Y = 0, sum_XY = 0;
+        double squareSum_X = 0, squareSum_Y = 0;
+        Double[] arrayX = correlationX.toArray(new Double[0]);
+        Double[] arrayY = correlationY.toArray(new Double[0]);
+        // Calculate the variables needed to calculate coefficient
+        for (int i = 0; i < length; i++) {
+            sum_X = sum_X + arrayX[i];
+            sum_Y = sum_Y + arrayY[i];
+            sum_XY = sum_XY + arrayX[i] * arrayY[i];
+            squareSum_X = squareSum_X + arrayX[i] * arrayX[i];
+            squareSum_Y = squareSum_Y + arrayY[i] * arrayY[i];
+        }
+        // Calculate the coefficient
+        return (length * sum_XY - sum_X * sum_Y) / (Math.sqrt((length * squareSum_X - sum_X * sum_X) * (length * squareSum_Y - sum_Y * sum_Y)));
+
     }
 }
