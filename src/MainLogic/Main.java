@@ -1595,8 +1595,7 @@ public class Main extends Application {
                 LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
                 ZoneId defaultZoneId = ZoneId.of("Europe/Tallinn");
                 Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
-                Calendar calendar = Calendar.getInstance();
-                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                Calendar calendar = Calendar.getInstance(Locale.GERMANY);
                 calendar.setTime(date);
                 int i = calendar.get(Calendar.DAY_OF_WEEK) - calendar.getFirstDayOfWeek();
                 calendar.add(Calendar.DATE, -i);
