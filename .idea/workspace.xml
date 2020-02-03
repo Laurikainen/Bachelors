@@ -87,8 +87,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="794" column="36" lean-forward="true" selection-start-line="794" selection-start-column="36" selection-end-line="794" selection-end-column="36" />
+            <state relative-caret-position="209">
+              <caret line="450" selection-start-line="450" selection-end-line="450" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -154,7 +154,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>VB</find>
       <find>setTitle</find>
       <find>buttonGoBackToTimeFrame</find>
       <find>column</find>
@@ -184,6 +183,7 @@
       <find>saveStacked</find>
       <find>Calendar</find>
       <find>exe</find>
+      <find>Lable</find>
     </findStrings>
   </component>
   <component name="FindManager">
@@ -528,12 +528,12 @@
       <workItem from="1580405963917" duration="3609000" />
       <workItem from="1580561991850" duration="19840000" />
       <workItem from="1580678386429" duration="14497000" />
-      <workItem from="1580694379108" duration="2417000" />
+      <workItem from="1580694379108" duration="2787000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="418967000" />
+    <option name="totallyTimeSpent" value="419337000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
@@ -702,8 +702,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/MainLogic/Main.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="794" column="36" lean-forward="true" selection-start-line="794" selection-start-column="36" selection-end-line="794" selection-end-column="36" />
+        <state relative-caret-position="209">
+          <caret line="450" selection-start-line="450" selection-end-line="450" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>

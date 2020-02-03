@@ -170,7 +170,6 @@ public class Main extends Application {
         Label labelDateTo = new Label("Lõpukuupäev ");
         Label labelTimeFrom = new Label("Alguskellaaeg ");
         Label labelTimeTo = new Label("Lõpukellaaeg ");
-        Label labelExtraInfoAboutWeeksBarChart = new Label("Nädalad on aasta lõikes, mitte õppeaasta lõikes");
         // All the used Buttons
         Button buttonChooseStudentFile = new Button("Ava õpilaste fail");
         Button buttonChooseGradeFile = new Button("Ava hinnete fail");
@@ -449,7 +448,6 @@ public class Main extends Application {
         gridPaneTabCorrelationBetweenLogsAndGrades.add(displayCoefficient, 0, 2);
         gridPaneTabVisitsPerWeekAndDay.add(stackedBarChartVisitsPerWeekAndDay, 0, 0);
         gridPaneTabVisitsPerDayAndHour.add(stackedBarChartVisitsPerDayAndHour, 0, 0);
-        gridPaneTabVisitsPerWeekAndDay.add(labelExtraInfoAboutWeeksBarChart, 0, 2);
         gridPaneTabVisitsPerWeekAndDay.add(tableViewWeekAndDay, 0, 1);
         gridPaneTabVisitsPerDayAndHour.add(tableViewDayAndHour, 0, 1);
         gridPaneTabAllSelectedData.add(saveTableViewLogData, 0, 1);
@@ -458,7 +456,7 @@ public class Main extends Application {
         gridPaneTabStudentGrades.add(saveTableViewGradeData, 0, 1);
         gridPaneTabVisitsPerHour.add(saveBarChartVisitsPerHour, 0, 1);
         gridPaneTabCorrelationBetweenLogsAndGrades.add(saveTableViewCorrelationBetweenLogsAndGrades, 0, 3);
-        gridPaneTabVisitsPerWeekAndDay.add(hBoxWeekAndDay, 0, 3);
+        gridPaneTabVisitsPerWeekAndDay.add(hBoxWeekAndDay, 0, 2);
         gridPaneTabVisitsPerDayAndHour.add(hBoxDayAndHour, 0, 2);
         gridPaneForTabPane.add(hBoxGoBackToTimeFrame, 0, 1);
         gridPaneEventContext.setVgap(15);
