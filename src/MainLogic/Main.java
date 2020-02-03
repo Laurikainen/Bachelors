@@ -1076,8 +1076,12 @@ public class Main extends Application {
             List<Date> list = new ArrayList<>(set);
             for (int i = 0; i < list.size(); i++) {
                 int sum = 0;
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                calendar.setTime(list.get(i));
+                calendar.add(Calendar.DATE, 6);
                 for (Integer integer : mapDayOccurrencesByEachWeek.get(list.get(i)).values()) { sum += integer; }
-                worksheet.getCell(i + 1, 0).setValue(list.get(i));
+                worksheet.getCell(i + 1, 0).setValue(simpleDateFormatShort.format(list.get(i)) + " - " + simpleDateFormat.format(calendar.getTime()));
                 worksheet.getCell(i + 1, 1).setValue(sum);
 
             }
