@@ -778,25 +778,29 @@ public class Main extends Application {
             for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
                 row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getText());
             }
-            for (int i = 0; i < tableViewSelectedData.getItems().size(); i++) {
-                row = spreadsheet.createRow(i + 1);
-                for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
-                    if(tableViewSelectedData.getColumns().get(j).getCellData(i) != null) {
-                        row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getCellData(i).toString());
-                    }
-                    else {
-                        row.createCell(j).setCellValue("");
+            try {
+                for (int i = 0; i < tableViewSelectedData.getItems().size(); i++) {
+                    row = spreadsheet.createRow(i + 1);
+                    for (int j = 0; j < tableViewSelectedData.getColumns().size(); j++) {
+                        if (tableViewSelectedData.getColumns().get(j).getCellData(i) != null) {
+                            row.createCell(j).setCellValue(tableViewSelectedData.getColumns().get(j).getCellData(i).toString());
+                        } else {
+                            row.createCell(j).setCellValue("");
+                        }
                     }
                 }
+                try {
+                    FileOutputStream fileOut = new FileOutputStream("TableViewLogs.xls");
+                    workbook.write(fileOut);
+                    fileOut.close();
+                    displayInformationAlert();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+                }
             }
-            try {
-                FileOutputStream fileOut = new FileOutputStream("TableViewLogs.xls");
-                workbook.write(fileOut);
-                fileOut.close();
-                displayInformationAlert();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            catch (IllegalArgumentException ex) {
+                displayErrorAlert("Faili ei salvestatud", "Failis on liiga palju ridu lubatud on ainult 65535 rida.");
             }
         });
         saveTableViewGradeData.setOnAction(e -> {
@@ -938,6 +942,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         saveBarChartEventName.setOnAction(e -> {
@@ -966,6 +972,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         saveBarChartStudentGroup.setOnAction(e -> {
@@ -1000,6 +1008,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         saveBarChartStudentName.setOnAction(e -> {
@@ -1034,6 +1044,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         saveBarChartVisitsPerHour.setOnAction(e -> {
@@ -1062,6 +1074,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         // Exporting StackedBarCharts
@@ -1097,6 +1111,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         saveStackedBarChartVisitsPerDayAndHour.setOnAction(e -> {
@@ -1132,6 +1148,8 @@ public class Main extends Application {
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
+            } catch (Exception ex) {
+                displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
         // Finalizing the Stage
