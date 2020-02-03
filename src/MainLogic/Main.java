@@ -28,11 +28,12 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.WeekFields;
 import java.util.*;
 import com.gembox.spreadsheet.*;
 import com.gembox.spreadsheet.charts.*;
@@ -48,7 +49,7 @@ public class Main extends Application {
     private List<String> mapKeyEventName, mapKeyEventContext, time;
     private Map<String, Integer> dataMapStudentGroup, dataMapStudentName;
     private Map<String, Map<String, Integer>> mapHourOccurrencesByEachDay;
-    private Map<Integer, Map<String, Integer>> mapDayOccurrencesByEachWeek;
+    private Map<Date, Map<String, Integer>> mapDayOccurrencesByEachWeek;
     private List<Map<String, Double>> listOfCorrelationData;
     private ListView<String> listViewLogContext = new ListView<>();
     private ListView<String> listViewLogEventFinal = new ListView<>();
@@ -93,6 +94,8 @@ public class Main extends Application {
     private StackedBarChart<String, Number> stackedBarChartVisitsPerWeekAndDay = new StackedBarChart<>(xAxisVisitsPerWeekAndDay, yAxisVisitsPerWeekAndDay);
     private StackedBarChart<String, Number> stackedBarChartVisitsPerDayAndHour = new StackedBarChart<>(xAxisVisitsPerDayAndHour, yAxisVisitsPerDayAndHour);
     private Label displayCoefficient = new Label();
+    private String pattern = "dd.MM.YY";
+    private SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
     public static void main(String[] args) {
         launch(args);
@@ -1067,8 +1070,8 @@ public class Main extends Application {
             // Create Excel chart and select data for it.
             ExcelChart chart = worksheet.getCharts().add(ChartType.BAR, "D2", "M25");
             chart.selectData(worksheet.getCells().getSubrangeAbsolute(0, 0, mapDayOccurrencesByEachWeek.size(), 1), true);
-            Set<Integer> set = mapDayOccurrencesByEachWeek.keySet();
-            List<Integer> list = new ArrayList<>(set);
+            Set<Date> set = mapDayOccurrencesByEachWeek.keySet();
+            List<Date> list = new ArrayList<>(set);
             for (int i = 0; i < list.size(); i++) {
                 int sum = 0;
                 for (Integer integer : mapDayOccurrencesByEachWeek.get(list.get(i)).values()) { sum += integer; }
@@ -1304,15 +1307,19 @@ public class Main extends Application {
             for (Integer integer : integers) {
                 TableColumn<List<StringProperty>, String> columnWeekAndDay = new TableColumn<>(days.get(integer));
                 columnWeekAndDay.setCellValueFactory(data  -> data.getValue().get(integer));
-                columnWeekAndDay.setMinWidth(97);
+                columnWeekAndDay.setMinWidth(95);
                 tableViewWeekAndDay.getColumns().add(columnWeekAndDay);
             }
             ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
-            for (Integer var : mapDayOccurrencesByEachWeek.keySet()) {
+            for (Date var : mapDayOccurrencesByEachWeek.keySet()) {
                 List<StringProperty> firstRow = new ArrayList<>();
                 for (Integer integer : integers) {
                     if (integer == 0) {
-                        firstRow.add(integer, new SimpleStringProperty(Integer.toString(var)));
+                        Calendar calendar = Calendar.getInstance();
+                        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                        calendar.setTime(var);
+                        calendar.add(Calendar.DATE, 6);
+                        firstRow.add(integer, new SimpleStringProperty(simpleDateFormat.format(var) + " - " + simpleDateFormat.format(calendar.getTime())));
                     }
                     else {
                         firstRow.add(integer, new SimpleStringProperty(Integer.toString(mapDayOccurrencesByEachWeek.get(var).get(days.get(integer)))));
@@ -1557,50 +1564,62 @@ public class Main extends Application {
             saturday.setName("Laupäev");
             XYChart.Series<String, Number> sunday = new XYChart.Series<>();
             sunday.setName("Pühapäev");
-            mapDayOccurrencesByEachWeek = new HashMap<>();
-            for (int i = 1; i < 53; i++) {
-                Map<String, Integer> mapOfDays = new HashMap<>();
-                mapOfDays.put("E", 0);
-                mapOfDays.put("T", 0);
-                mapOfDays.put("K", 0);
-                mapOfDays.put("N", 0);
-                mapOfDays.put("R", 0);
-                mapOfDays.put("L", 0);
-                mapOfDays.put("P", 0);
-                mapDayOccurrencesByEachWeek.put(i, mapOfDays);
-            }
+            mapDayOccurrencesByEachWeek = new TreeMap<>();
             for (Log log : filteredResults) {
                 DateTimeFormatter dateTimeFormatter;
                 String[] logArray = log.getTime().split(" ");
                 if (logArray[0].length() == 9) { dateTimeFormatter = DateTimeFormatter.ofPattern("d.MM.yyyy"); }
                 else { dateTimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy"); }
                 LocalDate localDate = LocalDate.parse(logArray[0], dateTimeFormatter);
-                WeekFields weekFields = WeekFields.of(Locale.getDefault());
-                int weekNumber = localDate.get(weekFields.weekOfWeekBasedYear());
+                ZoneId defaultZoneId = ZoneId.of("Europe/Tallinn");
+                Date date = Date.from(localDate.atStartOfDay(defaultZoneId).toInstant());
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                calendar.setTime(date);
+                int i = calendar.get(Calendar.DAY_OF_WEEK) - calendar.getFirstDayOfWeek();
+                calendar.add(Calendar.DATE, -i);
+                Date start = calendar.getTime();
+                calendar.add(Calendar.DATE, 6);
+                //String start = simpleDateFormat.format(start) + " - " + simpleDateFormat.format(end);
+                if (!mapDayOccurrencesByEachWeek.keySet().contains(start)) {
+                    Map<String, Integer> mapOfDays = new HashMap<>();
+                    mapOfDays.put("E", 0);
+                    mapOfDays.put("T", 0);
+                    mapOfDays.put("K", 0);
+                    mapOfDays.put("N", 0);
+                    mapOfDays.put("R", 0);
+                    mapOfDays.put("L", 0);
+                    mapOfDays.put("P", 0);
+                    mapDayOccurrencesByEachWeek.put(start, mapOfDays);
+                }
                 if (localDate.getDayOfWeek() == DayOfWeek.MONDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("E", mapDayOccurrencesByEachWeek.get(weekNumber).get("E") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("E", mapDayOccurrencesByEachWeek.get(start).get("E") + 1);
                 }
                 else if (localDate.getDayOfWeek() == DayOfWeek.TUESDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("T", mapDayOccurrencesByEachWeek.get(weekNumber).get("T") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("T", mapDayOccurrencesByEachWeek.get(start).get("T") + 1);
                 }
                 else if (localDate.getDayOfWeek() == DayOfWeek.WEDNESDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("K", mapDayOccurrencesByEachWeek.get(weekNumber).get("K") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("K", mapDayOccurrencesByEachWeek.get(start).get("K") + 1);
                 }
                 else if (localDate.getDayOfWeek() == DayOfWeek.THURSDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("N", mapDayOccurrencesByEachWeek.get(weekNumber).get("N") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("N", mapDayOccurrencesByEachWeek.get(start).get("N") + 1);
                 }
                 else if (localDate.getDayOfWeek() == DayOfWeek.FRIDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("R", mapDayOccurrencesByEachWeek.get(weekNumber).get("R") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("R", mapDayOccurrencesByEachWeek.get(start).get("R") + 1);
                 }
                 else if (localDate.getDayOfWeek() == DayOfWeek.SATURDAY) {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("L", mapDayOccurrencesByEachWeek.get(weekNumber).get("L") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("L", mapDayOccurrencesByEachWeek.get(start).get("L") + 1);
                 }
                 else {
-                    mapDayOccurrencesByEachWeek.get(weekNumber).put("P", mapDayOccurrencesByEachWeek.get(weekNumber).get("P") + 1);
+                    mapDayOccurrencesByEachWeek.get(start).put("P", mapDayOccurrencesByEachWeek.get(start).get("P") + 1);
                 }
             }
-            for (int i = 1; i < 53; i++) {
-                Collection<Integer> collection = mapDayOccurrencesByEachWeek.get(i).values();
+            for (Date week : mapDayOccurrencesByEachWeek.keySet()) {
+                Collection<Integer> collection = mapDayOccurrencesByEachWeek.get(week).values();
+                Calendar calendar = Calendar.getInstance();
+                calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                calendar.setTime(week);
+                calendar.add(Calendar.DATE, 6);
                 int sum = 0;
                 for (Integer integer : collection) {
                     sum += integer;
@@ -1608,30 +1627,30 @@ public class Main extends Application {
                 if (sum != 0) {
                     for (int j = 0; j < 7; j++) {
                         if (j == 0) {
-                            monday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("E"))));
+                            monday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("E"))));
                         }
                         else if (j == 1) {
-                            tuesday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("T"))));
+                            tuesday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("T"))));
                         }
                         else if (j == 2) {
-                            wednesday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("K"))));
+                            wednesday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("K"))));
                         }
                         else if (j == 3) {
-                            thursday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("N"))));
+                            thursday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("N"))));
                         }
                         else if (j == 4) {
-                            friday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("R"))));
+                            friday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("R"))));
                         }
                         else if (j == 5) {
-                            saturday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("L"))));
+                            saturday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("L"))));
                         }
                         else {
-                            sunday.getData().add((new XYChart.Data<>(Integer.toString(i), mapDayOccurrencesByEachWeek.get(i).get("P"))));
+                            sunday.getData().add((new XYChart.Data<>(simpleDateFormat.format(week) + " - " + simpleDateFormat.format(calendar.getTime()), mapDayOccurrencesByEachWeek.get(week).get("P"))));
                         }
                     }
                 }
                 else {
-                    mapDayOccurrencesByEachWeek.remove(i);
+                    mapDayOccurrencesByEachWeek.remove(week);
                 }
             }
             stackedBarChartVisitsPerWeekAndDay.setMinWidth(800);
