@@ -1,6 +1,7 @@
 package FilesProcessing;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MoodleLogsProcessing {
@@ -10,10 +11,11 @@ public class MoodleLogsProcessing {
     private Set<String> eventContext = new HashSet<>();
     // Process all the logs when given the file name using BufferReader
     public void processLogs(File file) {
+
         String line;
         String[] log = new String[0];
         try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
+            BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8));
             while ((line = br.readLine()) != null) {
                 try {
                     log = makeQuotedSentencesIntoOne(line);

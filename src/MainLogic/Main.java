@@ -37,6 +37,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import com.gembox.spreadsheet.*;
 import com.gembox.spreadsheet.charts.*;
+import org.shaded.apache.commons.collections4.list.TreeList;
+
 
 public class Main extends Application {
 
@@ -61,7 +63,7 @@ public class Main extends Application {
     private TableView<List<StringProperty>> tableViewSelectedStudentsGrades = new TableView<>();
     private TableView<List<StringProperty>> tableViewWeekAndDay = new TableView<>();
     private TableView<List<StringProperty>> tableViewDayAndHour = new TableView<>();
-    private TableView<List<StringProperty>> tableViewCorrelation = new TableView<>();
+    private TableView<Correlation> tableViewCorrelation = new TableView<>();
     private ObservableList<String> observableListLogContext = FXCollections.observableArrayList();
     private ObservableList<String> observableListLogEvent = FXCollections.observableArrayList();
     private ObservableList<String> observableListStudentName = FXCollections.observableArrayList();
@@ -107,14 +109,15 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
-
+        stage.setMinWidth(750);
+        stage.setMinHeight(465);
         // All the used TitledPanes and TabPanes
         TitledPane titledPaneMainView = new TitledPane("Vajalike failide sisestamine", new Label());
-        TitledPane titledPaneEventContext = new TitledPane("Sündmuse konteksti elementide valimine", new Label());
-        TitledPane titledPaneEventName = new TitledPane("Sündmuse nime elementide valimine", new Label());
-        TitledPane titledPaneStudentGroups = new TitledPane("Õpilaste gtuppide valimine", new Label());
-        TitledPane titledPaneStudentName = new TitledPane("Õpilaste nimede valimine", new Label());
-        TitledPane titledPaneTimeFrame = new TitledPane("Ajaraami valimine", new Label());
+        TitledPane titledPaneEventContext = new TitledPane("Vali sündmuse konteksti elemendid", new Label());
+        TitledPane titledPaneEventName = new TitledPane("Vali sündmuse nime elemendid", new Label());
+        TitledPane titledPaneStudentGroups = new TitledPane("Vali õpilaste gtupid", new Label());
+        TitledPane titledPaneStudentName = new TitledPane("Vali õpilaste nimed", new Label());
+        TitledPane titledPaneTimeFrame = new TitledPane("Vali ajaraam", new Label());
         TabPane tabPaneAnalysedData = new TabPane();
         // Making all the TitledPanes not collapsible
         titledPaneMainView.setCollapsible(false);
@@ -132,6 +135,12 @@ public class Main extends Application {
         Tab tabVisitsPerHour = new Tab("Kirjete arv tundide kaupa");
         Tab tabStudentGrades = new Tab("Õpilaste hinded");
         Tab tabCorrelationBetweenLogsAndGrades = new Tab("Hinnete ja logide korrelatsoon");
+        // TextField for time
+        TextField textFieldStart = new TextField(null);
+        TextField textFieldEnd = new TextField(null);
+        // TextField set text
+        textFieldStart.setPromptText("tt.mm");
+        textFieldEnd.setPromptText("tt.mm");
         // Make all tabs not closable
         tabPaneAnalysedData.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         // All the used GridPanes
@@ -160,9 +169,9 @@ public class Main extends Application {
         gridPaneTabVisitsPerWeekAndDay.setPadding(new Insets(10));
         gridPaneTabVisitsPerDayAndHour.setPadding(new Insets(10));
         // All the used Labels
+        Label labelLog = new Label("Moodle'i logid (.csv) ");
         Label labelStudent = new Label("Õpilaste andmed (.xls) ");
         Label labelGrade = new Label("Õpilaste hinded (.xlsx) ");
-        Label labelLog = new Label("Moodle'i logid (.csv) ");
         Label labelLogFileName = new Label();
         Label labelStudentFileName =  new Label();
         Label labelGradeFileName = new Label();
@@ -171,9 +180,9 @@ public class Main extends Application {
         Label labelTimeFrom = new Label("Alguskellaaeg ");
         Label labelTimeTo = new Label("Lõpukellaaeg ");
         // All the used Buttons
+        Button buttonChooseLogFile = new Button("Ava logide fail");
         Button buttonChooseStudentFile = new Button("Ava õpilaste fail");
         Button buttonChooseGradeFile = new Button("Ava hinnete fail");
-        Button buttonChooseLogFile = new Button("Ava logide fail");
         Button buttonGoToChooseEventContext = new Button("Edasi");
         Button buttonGoToChooseEventName = new Button("Edasi");
         Button buttonGoBackToMainView = new Button("Tagasi");
@@ -187,16 +196,16 @@ public class Main extends Application {
         Button buttonGoBackToChooseStudentName = new Button("Tagasi");
         Button buttonRemoveDateAndTime = new Button("Tühjenda väljad");
         Button buttonGoBackToTimeFrame = new Button("Tagasi");
-        Button saveBarChartEventContext = new Button("Salvesta sündmuse konteksti graaf");
-        Button saveBarChartEventName = new Button("Salvesta sündmuse nime graaf");
-        Button saveBarChartStudentGroup = new Button("Salvesta õpilaste rühmade graaf");
-        Button saveBarChartStudentName = new Button("Salvesta õpilaste nimede graaf");
-        Button saveBarChartVisitsPerHour = new Button("Salvesta graaf");
+        Button saveBarChartEventContext = new Button("Salvesta sündmuse konteksti graafik");
+        Button saveBarChartEventName = new Button("Salvesta sündmuse nime graafik");
+        Button saveBarChartStudentGroup = new Button("Salvesta õpilaste rühmade graafik");
+        Button saveBarChartStudentName = new Button("Salvesta õpilaste nimede graafik");
+        Button saveBarChartVisitsPerHour = new Button("Salvesta graafik");
         Button saveTableViewGradeData = new Button("Salvesta tabel");
         Button saveTableViewLogData = new Button("Salvesta tabel");
         Button saveTableViewCorrelationBetweenLogsAndGrades = new Button("Salvesta tabel");
-        Button saveStackedBarChartVisitsPerWeekAndDay = new Button("Salvesta graaf");
-        Button saveStackedBarChartVisitsPerDayAndHour = new Button("Salvesta graaf");
+        Button saveStackedBarChartVisitsPerWeekAndDay = new Button("Salvesta graafik");
+        Button saveStackedBarChartVisitsPerDayAndHour = new Button("Salvesta graafik");
         Button saveTableViewStackedBarChartVisitsPerWeekAndDay = new Button("Salvesta tabel");
         Button saveTableViewStackedBarChartVisitsPerDayAndHour = new Button("Salvesta tabel");
         // Creating HBoxes
@@ -210,37 +219,23 @@ public class Main extends Application {
         hBoxWeekAndDay.getChildren().addAll(saveStackedBarChartVisitsPerWeekAndDay, saveTableViewStackedBarChartVisitsPerWeekAndDay);
         HBox hBoxGoBackToTimeFrame = new HBox();
         hBoxGoBackToTimeFrame.getChildren().add(buttonGoBackToTimeFrame);
-        hBoxGoBackToTimeFrame.setPadding(new Insets(10));
-        // Setting ListView SelectionModel to multiple and setting ListViews size as 800
-        setListViewSelectionModelAndSize(listViewLogContext);
-        setListViewSelectionModelAndSize(listViewLogEvent);
-        setListViewSelectionModelAndSize(listViewStudentGroup);
-        setListViewSelectionModelAndSize(listViewStudentName);
+        hBoxGoBackToTimeFrame.setPadding(new Insets(5, 5, 10, 10));
         // Making ListViews and TableView selection models to multiple
+        listViewLogContext.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listViewLogEvent.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listViewStudentGroup.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        listViewStudentName.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelectedData.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewSelectedStudentsGrades.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewWeekAndDay.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         tableViewDayAndHour.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        // Making ListViews and TableView width to 800
-        tableViewSelectedData.setMinWidth(800);
-        tableViewSelectedStudentsGrades.setMinWidth(800);
-        tableViewWeekAndDay.setMinWidth(800);
-        tableViewDayAndHour.setMinWidth(800);
-        tableViewSelectedData.setMaxWidth(800);
-        tableViewSelectedStudentsGrades.setMaxWidth(800);
-        tableViewWeekAndDay.setMaxWidth(800);
-        tableViewDayAndHour.setMaxWidth(800);
+        // Making TableView width to 200
         tableViewDayAndHour.setMaxHeight(200);
         // Making TextFields to filter ListViews
         TextField textFieldFilteredLogContext = new TextField();
         TextField textFieldFilteredLogEvent = new TextField();
         TextField textFieldFilteredStudentGroup = new TextField();
         TextField textFieldFilteredStudentName = new TextField();
-        // Setting TextFields size
-        textFieldFilteredLogContext.setMinWidth(800);
-        textFieldFilteredLogEvent.setMinWidth(800);
-        textFieldFilteredStudentGroup.setMinWidth(800);
-        textFieldFilteredStudentName.setMinWidth(800);
         // Setting TextField text
         textFieldFilteredLogContext.setPromptText("Otsi sündmuse konteksti järgi");
         textFieldFilteredLogEvent.setPromptText("Otsi sündmuse nime järgi");
@@ -330,13 +325,9 @@ public class Main extends Application {
         fileChooserLog.getExtensionFilters().add(extFilterLog);
         fileChooserStudent.getExtensionFilters().add(extFilterStudent);
         fileChooserGrade.getExtensionFilters().add(extFilterGrade);
-        // Creating DatePicker and ChoiceBoxes
+        // Creating DatePicker
         DatePicker datePickerFrom = new DatePicker();
         DatePicker datePickerTo = new DatePicker();
-        ChoiceBox<String> choiceBoxTimeFromHours = new ChoiceBox<>();
-        ChoiceBox<String> choiceBoxTimeFromMinutes = new ChoiceBox<>();
-        ChoiceBox<String> choiceBoxTimeToHours = new ChoiceBox<>();
-        ChoiceBox<String> choiceBoxTimeToMinutes = new ChoiceBox<>();
         // Set DatePicker format to dd.MM.yyyy
         StringConverter<LocalDate> stringConverter = new StringConverter<>()
         {
@@ -364,57 +355,48 @@ public class Main extends Application {
         datePickerTo.setConverter(stringConverter);
         datePickerFrom.setPromptText("pp.kk.aaaa");
         datePickerTo.setPromptText("pp.kk.aaaa");
-        // Initializing ChoiceBoxes
-        for (int i = 0; i<25; i++) {
-            choiceBoxTimeFromHours.getItems().add(Integer.toString(i));
-            choiceBoxTimeToHours.getItems().add(Integer.toString(i));
-        }
-        for (int i = 0; i<61; i++) {
-            choiceBoxTimeFromMinutes.getItems().add(Integer.toString(i));
-            choiceBoxTimeToMinutes.getItems().add(Integer.toString(i));
-        }
         // Creating the table for all the selected information from logs
         TableColumn<Log, String> columnLogTime = new TableColumn<>("Aeg");
         TableColumn<Log, String> columnStudentName = new TableColumn<>("Nimi");
         TableColumn<Log, String> columnEventContext = new TableColumn<>("Sündmuse kontekst");
         TableColumn<Log, String> columnEventName = new TableColumn<>("Sündmuse nimi");
         TableColumn<Log, String> columnStudentGroup = new TableColumn<>("Rühm");
-        columnLogTime.setMinWidth(100);
-        columnStudentName.setMinWidth(115);
-        columnEventContext.setMinWidth(240);
-        columnEventName.setMinWidth(225);
-        columnStudentGroup.setMinWidth(100);
+        TableColumn<Correlation, Double> columnCorrelationGrade = new TableColumn<>("Hinne");
+        TableColumn<Correlation, Double> columnCorrelationLogs = new TableColumn<>("Logid");
         columnLogTime.setCellValueFactory(new PropertyValueFactory<>("time"));
         columnStudentName.setCellValueFactory(new PropertyValueFactory<>("studentName"));
         columnEventContext.setCellValueFactory(new PropertyValueFactory<>("eventContext"));
         columnEventName.setCellValueFactory(new PropertyValueFactory<>("eventName"));
         columnStudentGroup.setCellValueFactory(new PropertyValueFactory<>("studentGroup"));
+        columnCorrelationGrade.setCellValueFactory(new PropertyValueFactory<>("grade"));
+        columnCorrelationLogs.setCellValueFactory(new PropertyValueFactory<>("logs"));
         tableViewSelectedData.getColumns().add(columnLogTime);
         tableViewSelectedData.getColumns().add(columnStudentName);
         tableViewSelectedData.getColumns().add(columnEventContext);
         tableViewSelectedData.getColumns().add(columnEventName);
         tableViewSelectedData.getColumns().add(columnStudentGroup);
+        tableViewCorrelation.getColumns().add(columnCorrelationGrade);
+        tableViewCorrelation.getColumns().add(columnCorrelationLogs);
         // Adding elements to GridPanes
-        gridPaneMainView.add(labelStudent, 0, 0);
-        gridPaneMainView.add(labelGrade, 0, 1 );
-        gridPaneMainView.add(labelLog,0, 2);
-        gridPaneMainView.add(labelStudentFileName, 1, 0);
-        gridPaneMainView.add(labelGradeFileName, 1, 1 );
-        gridPaneMainView.add(labelLogFileName,1, 2);
-        gridPaneMainView.add(buttonChooseStudentFile, 2, 0);
-        gridPaneMainView.add(buttonChooseGradeFile, 2, 1 );
-        gridPaneMainView.add(buttonChooseLogFile,2, 2);
+        gridPaneMainView.add(labelStudent, 0, 1);
+        gridPaneMainView.add(labelGrade, 0, 2 );
+        gridPaneMainView.add(labelLog,0, 0);
+        gridPaneMainView.add(labelStudentFileName, 1, 1);
+        gridPaneMainView.add(labelGradeFileName, 1, 2);
+        gridPaneMainView.add(labelLogFileName,1, 0);
+        gridPaneMainView.add(buttonChooseLogFile,2, 0);
+        gridPaneMainView.add(buttonChooseStudentFile, 2, 1);
+        gridPaneMainView.add(buttonChooseGradeFile, 2, 2 );
         gridPaneMainView.add(buttonGoToChooseEventContext, 2, 3);
         gridPaneMainView.setVgap(15);
-        gridPaneMainView.setHgap(200);
-        gridPaneEventContext.add(textFieldFilteredLogContext, 0, 0, 2, 1);
-        gridPaneEventName.add(textFieldFilteredLogEvent, 0, 0,2 ,1);
-        gridPaneStudentGroups.add(textFieldFilteredStudentGroup, 0, 0, 2, 1);
-        gridPaneStudentName.add(textFieldFilteredStudentName, 0, 0, 2, 1);
         gridPaneEventContext.add(listViewLogContext, 0,  1, 2, 1);
         gridPaneEventName.add(listViewLogEvent, 0, 1, 2, 1);
         gridPaneStudentGroups.add(listViewStudentGroup, 0, 1, 2, 1);
         gridPaneStudentName.add(listViewStudentName, 0, 1, 2, 1);
+        gridPaneEventContext.add(textFieldFilteredLogContext, 0, 0, 2, 1);
+        gridPaneEventName.add(textFieldFilteredLogEvent, 0, 0,2 ,1);
+        gridPaneStudentGroups.add(textFieldFilteredStudentGroup, 0, 0, 2, 1);
+        gridPaneStudentName.add(textFieldFilteredStudentName, 0, 0, 2, 1);
         gridPaneEventContext.add(buttonGoBackToMainView, 0, 2);
         gridPaneEventContext.add(buttonGoToChooseEventName, 1, 2);
         gridPaneEventName.add(buttonGoBackToChooseEventContext, 0, 2);
@@ -423,19 +405,17 @@ public class Main extends Application {
         gridPaneStudentGroups.add(buttonGoToChooseStudentName, 1, 2);
         gridPaneStudentName.add(buttonGoBackToChooseStudentGroup, 0, 2);
         gridPaneStudentName.add(buttonGoToChooseTimeFrame, 1, 2);
+        gridPaneTimeFrame.add(buttonRemoveDateAndTime, 0, 4);
         gridPaneTimeFrame.add(labelDateFrom, 0, 0);
         gridPaneTimeFrame.add(labelDateTo, 2, 0);
         gridPaneTimeFrame.add(datePickerFrom, 0, 1, 2, 1);
         gridPaneTimeFrame.add(datePickerTo, 2, 1, 2, 1);
         gridPaneTimeFrame.add(labelTimeFrom, 0, 2);
         gridPaneTimeFrame.add(labelTimeTo, 2, 2);
-        gridPaneTimeFrame.add(choiceBoxTimeFromHours, 0, 3);
-        gridPaneTimeFrame.add(choiceBoxTimeFromMinutes, 1, 3);
-        gridPaneTimeFrame.add(choiceBoxTimeToHours, 2, 3);
-        gridPaneTimeFrame.add(choiceBoxTimeToMinutes, 3, 3);
         gridPaneTimeFrame.add(buttonGoBackToChooseStudentName, 0, 5);
         gridPaneTimeFrame.add(buttonGoToDisplayAllChosenData, 2, 5);
-        gridPaneTimeFrame.add(buttonRemoveDateAndTime, 0, 4);
+        gridPaneTimeFrame.add(textFieldStart, 0, 3, 2, 1);
+        gridPaneTimeFrame.add(textFieldEnd, 2, 3, 2, 1);
         gridPaneTabAllSelectedData.add(tableViewSelectedData, 0, 0, 2, 1);
         gridPaneTabEventContextAndName.add(barChartEventName, 0, 1);
         gridPaneTabEventContextAndName.add(barChartEventContext, 0, 0);
@@ -509,90 +489,97 @@ public class Main extends Application {
         // GridPane connected with TabPane
         gridPaneForTabPane.add(tabPaneAnalysedData, 0, 0);
         // Creating the new scenes
-        sceneMainView = new Scene(titledPaneMainView, 900, 500);
-        sceneLogContext = new Scene(titledPaneEventContext, 900, 500);
-        sceneLogName = new Scene(titledPaneEventName, 900, 500);
-        sceneFilterByGroup = new Scene(titledPaneStudentGroups, 900, 500);
-        sceneFilterByName = new Scene(titledPaneStudentName, 900, 500);
-        sceneTimeFrame = new Scene(titledPaneTimeFrame, 900, 500);
-        sceneDisplayAllSelectedData = new Scene(gridPaneForTabPane, 900, 500);
+        sceneMainView = new Scene(titledPaneMainView);
+        sceneLogContext = new Scene(titledPaneEventContext);
+        sceneLogName = new Scene(titledPaneEventName);
+        sceneFilterByGroup = new Scene(titledPaneStudentGroups);
+        sceneFilterByName = new Scene(titledPaneStudentName);
+        sceneTimeFrame = new Scene(titledPaneTimeFrame);
+        sceneDisplayAllSelectedData = new Scene(gridPaneForTabPane);
         // Button setOnAction()'s
+        buttonChooseLogFile.setOnAction(e -> {
+            logFile = fileChooserLog.showOpenDialog(stage);
+            if (logFile != null) {
+                fileChooserStudent.setInitialDirectory(logFile.getParentFile());
+                fileChooserGrade.setInitialDirectory(logFile.getParentFile());
+                fileChooserLog.setInitialDirectory(logFile.getParentFile());
+                labelLogFileName.setText(logFile.getName() + "  ");
+            }
+        });
         buttonChooseStudentFile.setOnAction(e -> {
             studentFile = fileChooserStudent.showOpenDialog(stage);
-            if (studentFile != null) { labelStudentFileName.setText(studentFile.getName() + " "); }
+            if (studentFile != null) {
+                fileChooserStudent.setInitialDirectory(studentFile.getParentFile());
+                fileChooserGrade.setInitialDirectory(studentFile.getParentFile());
+                fileChooserLog.setInitialDirectory(studentFile.getParentFile());
+                labelStudentFileName.setText(studentFile.getName() + " ");
+            }
         });
         buttonChooseGradeFile.setOnAction(e -> {
             gradeFile = fileChooserGrade.showOpenDialog(stage);
-            if (gradeFile != null) { labelGradeFileName.setText(gradeFile.getName() + " "); }
+            if (gradeFile != null) {
+                fileChooserStudent.setInitialDirectory(gradeFile.getParentFile());
+                fileChooserGrade.setInitialDirectory(gradeFile.getParentFile());
+                fileChooserLog.setInitialDirectory(gradeFile.getParentFile());
+                labelGradeFileName.setText(gradeFile.getName() + " ");
+            }
         });
-        buttonChooseLogFile.setOnAction(e -> {
-            logFile = fileChooserLog.showOpenDialog(stage);
-            if (logFile != null) { labelLogFileName.setText(logFile.getName() + "  "); }
-        });
+
         buttonGoToChooseEventContext.setOnAction(e -> {
-            Alert alertFileNotFound = null;
-            try {
-                moodleLogsProcessing = new MoodleLogsProcessing();
-                moodleLogsProcessing.processLogs(logFile);
+            Alert alertPleaseWait = new Alert(Alert.AlertType.INFORMATION);
+            alertPleaseWait.setTitle("Andmete töötlemine.");
+            alertPleaseWait.setHeaderText("Palun oota! Andmeid loetakse sisse. \nAken sulgub automaatselt.");
+            alertPleaseWait.setContentText("Kui uut vaadet ei kuvata 3 minuti jooksul, siis taaskäivitage programm.");
+            alertPleaseWait.show();
+            if (gradeFile == null) {
+                displayErrorAlert("Hinnete faili pole valitud!", "Pead sisestama hinnete faili.");
             }
-            catch (NullPointerException np) {
-                alertFileNotFound = new Alert(Alert.AlertType.ERROR);
-                alertFileNotFound.setTitle("Viga!");
-                alertFileNotFound.setHeaderText("Logide faili pole valitud!");
-                alertFileNotFound.setContentText("Pead sisestama moodle'i logide faili.");
-                alertFileNotFound.show();
-            }
-            try {
-                studentInfoProcessing = new StudentInfoProcessing();
-                studentInfoProcessing.processStudents(studentFile);
-            }
-            catch (NullPointerException np) {
-                alertFileNotFound = new Alert(Alert.AlertType.ERROR);
-                alertFileNotFound.setTitle("Viga!");
-                alertFileNotFound.setHeaderText("Õpilaste faili pole valitud!");
-                alertFileNotFound.setContentText("Pead sisestama õpilaste faili.");
-                alertFileNotFound.show();
-            }
-            try {
+            else {
                 gradesProcessing = new GradesProcessing();
                 gradesProcessing.processGrades(gradeFile);
             }
-            catch (NullPointerException np) {
-                alertFileNotFound = new Alert(Alert.AlertType.ERROR);
-                alertFileNotFound.setTitle("Viga!");
-                alertFileNotFound.setHeaderText("Hinnete faili pole valitud!");
-                alertFileNotFound.setContentText("Pead sisestama hinnete faili.");
-                alertFileNotFound.show();
+            if (studentFile == null) {
+                displayErrorAlert("Õpilaste faili pole valitud!", "Pead sisestama õpilaste faili.");
             }
-            if (alertFileNotFound == null) {
+            else {
+                studentInfoProcessing = new StudentInfoProcessing();
+                studentInfoProcessing.processStudents(studentFile);
+            }
+            if (logFile == null) {
+                displayErrorAlert("Logide faili pole valitud!", "Pead sisestama moodle'i logide faili.");
+            }
+            else {
+                moodleLogsProcessing = new MoodleLogsProcessing();
+                moodleLogsProcessing.processLogs(logFile);
+            }
+            alertPleaseWait.close();
+            if (logFile != null && studentFile != null && gradeFile != null) {
                 if (!gradesProcessing.getColumnNames().contains("Hinne (Punktid)")) {
-                    Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.INFORMATION);
-                    alertTimeHoursFromAfterTimeHoursTo.setTitle("Vigane hinnete fail!");
-                    alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Hinnete failis puudub veerg - \"Hinne (Punktid)\"!");
-                    alertTimeHoursFromAfterTimeHoursTo.setContentText("Korrelatsiooni pole võimalik arvutada.");
-                    alertTimeHoursFromAfterTimeHoursTo.show();
+                    displayInformationAlert("Vigane hinnete fail!", "Hinnete failis puudub veerg - \"Hinne (Punktid)\"!", "Korrelatsiooni pole võimalik arvutada.");
                 }
-                displayEventContext();
-                stage.setScene(sceneLogContext);
+                else {
+                    displayEventContext(stage);
+                    stage.setScene(sceneLogContext);
+                }
             }
         });
         // Forward
         buttonGoToChooseEventName.setOnAction(e -> {
             observableListLogContext = listViewLogContext.getSelectionModel().getSelectedItems();
             if (observableListLogContext.isEmpty()) { observableListLogContext = listViewLogContext.getItems(); }
-            displayEventName();
+            displayEventName(stage);
             stage.setScene(sceneLogName);
         });
         buttonGoToChooseStudentGroup.setOnAction(e -> {
             observableListLogEvent = listViewLogEvent.getSelectionModel().getSelectedItems();
             if (observableListLogEvent.isEmpty()) { observableListLogEvent = listViewLogEvent.getItems(); }
-            displayStudentGroup();
+            displayStudentGroup(stage);
             stage.setScene(sceneFilterByGroup);
         });
         buttonGoToChooseStudentName.setOnAction(e -> {
             observableListStudentGroup = listViewStudentGroup.getSelectionModel().getSelectedItems();
             if (observableListStudentGroup.isEmpty()) { observableListStudentGroup = listViewStudentGroup.getItems(); }
-            displayStudentName();
+            displayStudentName(stage);
             stage.setScene(sceneFilterByName);
         });
         buttonGoToChooseTimeFrame.setOnAction(e -> {
@@ -601,86 +588,64 @@ public class Main extends Application {
             stage.setScene(sceneTimeFrame);
         });
         buttonGoToDisplayAllChosenData.setOnAction(e -> {
+            Alert alertPleaseWait = new Alert(Alert.AlertType.INFORMATION);
+            alertPleaseWait.setTitle("Andmete töötlemine.");
+            alertPleaseWait.setHeaderText("Palun oota! Andmeid töödeldakse. \nAken sulgub automaatselt.");
+            alertPleaseWait.setContentText("Kui uut vaadet ei kuvata 5 minuti jooksul, siis taaskäivitage programm.");
+            alertPleaseWait.show();
             localDateFrom = datePickerFrom.getValue();
             localDateTo = datePickerTo.getValue();
             if (localDateFrom == null && localDateTo != null) {
+                alertPleaseWait.close();
                 displayErrorAlert("Alguskuupäeva pole valitud!", "Palun vali alguskuupäev.");
             }
             else if (localDateFrom != null && localDateTo == null) {
+                alertPleaseWait.close();
                 displayErrorAlert("Lõpukuupäev pole valitud!", "Palun vali lõpukuupäev.");
             }
             else if (localDateFrom != null) {
-                if (choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() != null && choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() != null) {
-                    StringBuilder timeFrom = new StringBuilder();
-                    StringBuilder timeTo = new StringBuilder();
-                    if (Integer.parseInt(String.valueOf(choiceBoxTimeFromHours.getValue())) < 10) {
-                        timeFrom.append("0");
-                    }
-                    if (Integer.parseInt(String.valueOf(choiceBoxTimeToHours.getValue())) < 10) {
-                        timeTo.append("0");
-                    }
-                    timeFrom.append(choiceBoxTimeFromHours.getValue());
-                    timeFrom.append(".");
-                    timeTo.append(choiceBoxTimeToHours.getValue());
-                    timeTo.append(".");
-                    if (Integer.parseInt(String.valueOf(choiceBoxTimeFromMinutes.getValue())) < 10) {
-                        timeFrom.append("0");
-                    }
-                    if (Integer.parseInt(String.valueOf(choiceBoxTimeToMinutes.getValue())) < 10) {
-                        timeTo.append("0");
-                    }
-                    timeFrom.append(choiceBoxTimeFromMinutes.getValue());
-                    timeTo.append(choiceBoxTimeToMinutes.getValue());
-                    localTimeFrom = timeFrom.toString();
-                    localTimeTo = timeTo.toString();
-
-                    if (localDateFrom.isEqual(localDateTo)) {
-                        String[] from = localTimeFrom.split("\\.");
-                        String[] to = localTimeTo.split("\\.");
-                        if (Integer.parseInt(from[0]) > Integer.parseInt(to[0])) {
-                            displayErrorAlert("Algustund on enne lõputundi!", "Palun vali algustund, mis on enne lõputundi.");
-                        }
-                        else if (from[0].equals(to[0])) {
-                            if (Integer.parseInt(from[1]) > Integer.parseInt(to[1])) {
-                                displayErrorAlert("Algusminutid on enne lõpuminuteid!", "Palun vali algusminutid, mis on enne lõpuminuteid.");
-                            }
-                            else {
-                                runMethodsForTabView();
-                                stage.setScene(sceneDisplayAllSelectedData);
-                            }
-                        }
-                        else {
-                            runMethodsForTabView();
-                            stage.setScene(sceneDisplayAllSelectedData);
-                        }
-                    }
-                    else if (localDateFrom.isAfter(localDateTo)) {
-                        displayErrorAlert("Alguskuupäev on enne lõpukuupäeva!", "Palun vali alguskuupäev, mis on enne lõpukuupäeva.");
-                    }
-                    else {
-                        runMethodsForTabView();
+                if (textFieldEnd.getText() == null && textFieldStart.getText() != null) {
+                    alertPleaseWait.close();
+                    displayErrorAlert("Lõpuaeg on valimata!", "Palun vali lõpuaeg.");
+                }
+                else if (textFieldEnd.getText() != null && textFieldStart.getText() == null) {
+                    alertPleaseWait.close();
+                    displayErrorAlert("Algusaeg on valimata!", "Palun vali alguaeg.");
+                }
+                else if (textFieldEnd.getText() != null) {
+                    DateTimeFormatter dateTimeFormatterTime = DateTimeFormatter.ofPattern("HH.mm");
+                    try {
+                        localTimeFrom = textFieldStart.getText();
+                        localTimeTo = textFieldEnd.getText();
+                        LocalTime.parse(localTimeFrom, dateTimeFormatterTime);
+                        LocalTime.parse(localTimeTo, dateTimeFormatterTime);
+                        alertPleaseWait.close();
+                        runMethodsForTabView(stage);
                         stage.setScene(sceneDisplayAllSelectedData);
                     }
-                }
-                else if ((choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() == null) || (choiceBoxTimeFromHours.getValue() == null && choiceBoxTimeFromMinutes.getValue() != null)) {
-                    displayErrorAlert("Algusaeg on valimata!", "Palun vali alguaeg.");
-                }
-                else if ((choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() == null) || (choiceBoxTimeToHours.getValue() == null && choiceBoxTimeToMinutes.getValue() != null)) {
-                    displayErrorAlert("Lõpuaeg on valimata!", "Palun vali lõpuaeg.");
-                }
-                else if ((choiceBoxTimeFromHours.getValue() == null && choiceBoxTimeFromMinutes.getValue() == null) && (choiceBoxTimeToHours.getValue() != null && choiceBoxTimeToMinutes.getValue() != null)) {
-                    displayErrorAlert("Algusaeg on valimata!", "Palun vali alguaeg.");
-                }
-                else if ((choiceBoxTimeFromHours.getValue() != null && choiceBoxTimeFromMinutes.getValue() != null) && (choiceBoxTimeToHours.getValue() == null && choiceBoxTimeToMinutes.getValue() == null)) {
-                    displayErrorAlert("Lõpuaeg on valimata!", "Palun vali lõpuaeg.");
+                    catch (Exception ex) {
+                        localTimeFrom = null;
+                        localTimeTo = null;
+                        alertPleaseWait.close();
+                        displayErrorAlert("Aeg on vales formaadis!", "Palun kirjuta aeg korrektselt.");
+                    }
+
                 }
                 else {
                     localTimeFrom = null;
                     localTimeTo = null;
+                    alertPleaseWait.close();
+                    runMethodsForTabView(stage);
+                    stage.setScene(sceneDisplayAllSelectedData);
                 }
             }
+            else if (textFieldEnd.getText() != null || textFieldStart.getText() != null) {
+                alertPleaseWait.close();
+                displayErrorAlert("Koos ajaga peab ka kuupäeva valima!", "Palun vali kuupäevad.");
+            }
             else {
-                runMethodsForTabView();
+                alertPleaseWait.close();
+                runMethodsForTabView(stage);
                 stage.setScene(sceneDisplayAllSelectedData);
             }
 
@@ -722,19 +687,15 @@ public class Main extends Application {
             makeLocalDateAndTimeNull();
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
-            choiceBoxTimeFromHours.setValue(null);
-            choiceBoxTimeFromMinutes.setValue(null);
-            choiceBoxTimeToHours.setValue(null);
-            choiceBoxTimeToMinutes.setValue(null);
+            textFieldStart.setText(null);
+            textFieldEnd.setText(null);
             observableListStudentName = FXCollections.observableArrayList();
             stage.setScene(sceneFilterByName);
         });
         buttonGoBackToTimeFrame.setOnAction(e -> {
             makeLocalDateAndTimeNull();
-            choiceBoxTimeFromHours.setValue(null);
-            choiceBoxTimeFromMinutes.setValue(null);
-            choiceBoxTimeToHours.setValue(null);
-            choiceBoxTimeToMinutes.setValue(null);
+            textFieldStart.setText(null);
+            textFieldEnd.setText(null);
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
             filteredResults = new ArrayList<>();
@@ -763,10 +724,8 @@ public class Main extends Application {
             makeLocalDateAndTimeNull();
             datePickerFrom.setValue(null);
             datePickerTo.setValue(null);
-            choiceBoxTimeFromHours.setValue(null);
-            choiceBoxTimeFromMinutes.setValue(null);
-            choiceBoxTimeToHours.setValue(null);
-            choiceBoxTimeToMinutes.setValue(null);
+            textFieldStart.setText(null);
+            textFieldEnd.setText(null);
         });
         // Exporting TableViews
         saveTableViewLogData.setOnAction(e -> {
@@ -791,7 +750,7 @@ public class Main extends Application {
                     FileOutputStream fileOut = new FileOutputStream("TableViewLogs.xls");
                     workbook.write(fileOut);
                     fileOut.close();
-                    displayInformationAlert();
+                    displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -812,7 +771,12 @@ public class Main extends Application {
                 row = spreadsheet.createRow(i + 1);
                 for (int j = 0; j < tableViewSelectedStudentsGrades.getColumns().size(); j++) {
                     if(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i) != null) {
-                        row.createCell(j).setCellValue(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i).toString());
+                        try {
+                            row.createCell(j).setCellValue(Double.valueOf(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i).toString()));
+                        }
+                        catch (NumberFormatException nr) {
+                            row.createCell(j).setCellValue(tableViewSelectedStudentsGrades.getColumns().get(j).getCellData(i).toString());
+                        }
                     }
                     else {
                         row.createCell(j).setCellValue("");
@@ -823,7 +787,7 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("TableViewGrades.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -840,7 +804,12 @@ public class Main extends Application {
                 row = spreadsheet.createRow(i + 1);
                 for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
                     if(tableViewWeekAndDay.getColumns().get(j).getCellData(i) != null) {
-                        row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString());
+                        if (j != 0) {
+                            row.createCell(j).setCellValue(Integer.valueOf(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString()));
+                        }
+                        else {
+                            row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString());
+                        }
                     }
                     else {
                         row.createCell(j).setCellValue("");
@@ -851,7 +820,7 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("TableViewWeekAndDay.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -861,14 +830,19 @@ public class Main extends Application {
             Workbook workbook = new HSSFWorkbook();
             Sheet spreadsheet = workbook.createSheet("TableViewDayAndHour");
             Row row = spreadsheet.createRow(0);
-            for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
-                row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getText());
+            for (int j = 0; j < tableViewDayAndHour.getColumns().size(); j++) {
+                row.createCell(j).setCellValue(tableViewDayAndHour.getColumns().get(j).getText());
             }
-            for (int i = 0; i < tableViewWeekAndDay.getItems().size(); i++) {
+            for (int i = 0; i < tableViewDayAndHour.getItems().size(); i++) {
                 row = spreadsheet.createRow(i + 1);
-                for (int j = 0; j < tableViewWeekAndDay.getColumns().size(); j++) {
-                    if(tableViewWeekAndDay.getColumns().get(j).getCellData(i) != null) {
-                        row.createCell(j).setCellValue(tableViewWeekAndDay.getColumns().get(j).getCellData(i).toString());
+                for (int j = 0; j < tableViewDayAndHour.getColumns().size(); j++) {
+                    if(tableViewDayAndHour.getColumns().get(j).getCellData(i) != null) {
+                        if (j != 0) {
+                            row.createCell(j).setCellValue(Integer.valueOf(tableViewDayAndHour.getColumns().get(j).getCellData(i).toString()));
+                        }
+                        else {
+                            row.createCell(j).setCellValue(tableViewDayAndHour.getColumns().get(j).getCellData(i).toString());
+                        }
                     }
                     else {
                         row.createCell(j).setCellValue("");
@@ -879,7 +853,7 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("TableViewDayAndHour.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -896,7 +870,8 @@ public class Main extends Application {
                 row = spreadsheet.createRow(i + 1);
                 for (int j = 0; j < tableViewCorrelation.getColumns().size(); j++) {
                     if(tableViewCorrelation.getColumns().get(j).getCellData(i) != null) {
-                        row.createCell(j).setCellValue(tableViewCorrelation.getColumns().get(j).getCellData(i).toString());
+                        row.createCell(j).setCellValue(Double.valueOf(tableViewCorrelation.getColumns().get(j).getCellData(i).toString()));
+
                     }
                     else {
                         row.createCell(j).setCellValue("");
@@ -907,7 +882,7 @@ public class Main extends Application {
                 FileOutputStream fileOut = new FileOutputStream("TableViewCorrelation.xls");
                 workbook.write(fileOut);
                 fileOut.close();
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (Exception ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -936,7 +911,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventContext.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -966,7 +941,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartEventName.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1002,7 +977,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentGroup.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1038,7 +1013,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartStudentName.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1068,7 +1043,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerHour.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1105,7 +1080,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerWeek.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1142,7 +1117,7 @@ public class Main extends Application {
             worksheet.getColumn(0).setWidth((int) LengthUnitConverter.convert(3, LengthUnit.CENTIMETER, LengthUnit.ZERO_CHARACTER_WIDTH_256_TH_PART));
             try {
                 workbook.save("BarChartVisitsPerDay.xlsx");
-                displayInformationAlert();
+                displayInformationAlert("Fail salvestati!", "Fail on salvestatud!", "Fail salvestati programmiga samasse kausta.");
             } catch (IOException ex) {
                 ex.printStackTrace();
                 displayErrorAlert("Faili ei salvestatud!", "Sulge vana fail ja proovi uuesti.");
@@ -1150,46 +1125,202 @@ public class Main extends Application {
                 displayErrorAlert("Faili ei salvestatud!", "Fail on salvestamise jaoks liiga suur.");
             }
         });
+        // Scene resize events
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            gridPaneMainView.setVgap(15);
+            gridPaneMainView.setHgap(stage.getWidth()/5);
+            listViewLogContext.setMinWidth(stage.getWidth()-50);
+            listViewLogEvent.setMinWidth(stage.getWidth()-50);
+            listViewLogEventFinal.setMinWidth(stage.getWidth()-50);
+            listViewStudentGroup.setMinWidth(stage.getWidth()-50);
+            listViewStudentName.setMinWidth(stage.getWidth()-50);
+            listViewStudentNameFinal.setMinWidth(stage.getWidth()-50);
+            tableViewSelectedData.setMinWidth(stage.getWidth()-55);
+            tableViewSelectedStudentsGrades.setMinWidth(stage.getWidth()-55);
+            tableViewDayAndHour.setMinWidth(stage.getWidth()-55);
+            tableViewWeekAndDay.setMinWidth(stage.getWidth()-55);
+            tableViewCorrelation.setMinWidth(stage.getWidth()-55);
+            barChartEventName.setMinWidth(stage.getWidth()-75);
+            barChartEventContext.setMinWidth(stage.getWidth()-75);
+            barChartStudentGroup.setMinWidth(stage.getWidth()-75);
+            barChartStudentName.setMinWidth(stage.getWidth()-75);
+            stackedBarChartVisitsPerWeekAndDay.setMinWidth(stage.getWidth()-75);
+            stackedBarChartVisitsPerDayAndHour.setMinWidth(stage.getWidth()-75);
+            barChartVisitsPerHour.setMinWidth(stage.getWidth()-75);
+            scatterChartCorrelationBetweenLogsAndGrades.setMinWidth(stage.getWidth()-75);
+            tabPaneAnalysedData.setMinWidth(stage.getWidth()-15);
+            if (tableViewSelectedData.getColumns().size() == 5) {
+                tableViewSelectedData.getColumns().get(0).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(1).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(2).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(3).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(4).setMinWidth((stage.getWidth()-75)/5);
+
+                tableViewSelectedData.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/5);
+            }
+            if (tableViewCorrelation.getColumns().size() == 2) {
+                tableViewCorrelation.getColumns().get(0).setMinWidth((stage.getWidth()-75)/2);
+                tableViewCorrelation.getColumns().get(1).setMinWidth((stage.getWidth()-75)/2);
+
+                tableViewCorrelation.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/2);
+                tableViewCorrelation.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/2);
+            }
+            if (tableViewWeekAndDay.getColumns().size() == 8) {
+                tableViewWeekAndDay.getColumns().get(0).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(1).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(2).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(3).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(4).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(5).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(6).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(7).setMinWidth((stage.getWidth()-75)/8);
+
+                tableViewWeekAndDay.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(5).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(6).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(7).setMaxWidth((stage.getWidth()-75)/8);
+            }
+            if (tableViewDayAndHour.getColumns().size() == 13) {
+                tableViewDayAndHour.getColumns().get(0).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(1).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(2).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(3).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(4).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(5).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(6).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(7).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(8).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(9).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(10).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(11).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(12).setMinWidth((stage.getWidth()-75)/13);
+
+                tableViewDayAndHour.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(5).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(6).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(7).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(8).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(9).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(10).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(11).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(12).setMaxWidth((stage.getWidth()-75)/13);
+            }
+            listViewLogContext.setMaxWidth(stage.getWidth()-50);
+            listViewLogEvent.setMaxWidth(stage.getWidth()-50);
+            listViewLogEventFinal.setMaxWidth(stage.getWidth()-50);
+            listViewStudentGroup.setMaxWidth(stage.getWidth()-50);
+            listViewStudentName.setMaxWidth(stage.getWidth()-50);
+            listViewStudentNameFinal.setMaxWidth(stage.getWidth()-50);
+            tableViewSelectedData.setMaxWidth(stage.getWidth()-55);
+            tableViewSelectedStudentsGrades.setMaxWidth(stage.getWidth()-55);
+            tableViewDayAndHour.setMaxWidth(stage.getWidth()-55);
+            tableViewWeekAndDay.setMaxWidth(stage.getWidth()-55);
+            tableViewCorrelation.setMaxWidth(stage.getWidth()-55);
+            barChartEventName.setMaxWidth(stage.getWidth()-75);
+            barChartEventContext.setMaxWidth(stage.getWidth()-75);
+            barChartStudentGroup.setMaxWidth(stage.getWidth()-75);
+            barChartStudentName.setMaxWidth(stage.getWidth()-75);
+            stackedBarChartVisitsPerWeekAndDay.setMaxWidth(stage.getWidth()-75);
+            stackedBarChartVisitsPerDayAndHour.setMaxWidth(stage.getWidth()-75);
+            barChartVisitsPerHour.setMaxWidth(stage.getWidth()-75);
+            scatterChartCorrelationBetweenLogsAndGrades.setMaxWidth(stage.getWidth()-75);
+            tabPaneAnalysedData.setMaxWidth(stage.getWidth()-15);
+        });
+
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> {
+            listViewLogContext.setMinHeight(stage.getHeight()-175);
+            listViewLogEvent.setMinHeight(stage.getHeight()-175);
+            listViewLogEventFinal.setMinHeight(stage.getHeight()-175);
+            listViewStudentGroup.setMinHeight(stage.getHeight()-175);
+            listViewStudentName.setMinHeight(stage.getHeight()-175);
+            listViewStudentNameFinal.setMinHeight(stage.getHeight()-175);
+            tableViewSelectedData.setMinHeight(stage.getHeight()-175);
+            tableViewSelectedStudentsGrades.setMinHeight(stage.getHeight()-175);
+            barChartEventName.setMinHeight(stage.getHeight()-175);
+            barChartEventContext.setMinHeight(stage.getHeight()-175);
+            barChartStudentGroup.setMinHeight(stage.getHeight()-175);
+            barChartStudentName.setMinHeight(stage.getHeight()-175);
+            stackedBarChartVisitsPerDayAndHour.setMinHeight(stage.getHeight()-175);
+            stackedBarChartVisitsPerWeekAndDay.setMinHeight(stage.getHeight()-175);
+            barChartVisitsPerHour.setMinHeight(stage.getHeight()-175);
+            scatterChartCorrelationBetweenLogsAndGrades.setMinHeight(stage.getHeight()-175);
+            listViewLogContext.setMaxHeight(stage.getHeight()-175);
+            listViewLogEvent.setMaxHeight(stage.getHeight()-175);
+            listViewLogEventFinal.setMaxHeight(stage.getHeight()-175);
+            listViewStudentGroup.setMaxHeight(stage.getHeight()-175);
+            listViewStudentName.setMaxHeight(stage.getHeight()-175);
+            listViewStudentNameFinal.setMaxHeight(stage.getHeight()-175);
+            tableViewSelectedData.setMaxHeight(stage.getHeight()-175);
+            tableViewSelectedStudentsGrades.setMaxHeight(stage.getHeight()-175);
+            barChartEventName.setMaxHeight(stage.getHeight()-175);
+            barChartEventContext.setMaxHeight(stage.getHeight()-175);
+            barChartStudentGroup.setMaxHeight(stage.getHeight()-175);
+            barChartStudentName.setMaxHeight(stage.getHeight()-175);
+            stackedBarChartVisitsPerDayAndHour.setMaxHeight(stage.getHeight()-175);
+            stackedBarChartVisitsPerWeekAndDay.setMaxHeight(stage.getHeight()-175);
+            barChartVisitsPerHour.setMaxHeight(stage.getHeight()-175);
+            scatterChartCorrelationBetweenLogsAndGrades.setMaxHeight(stage.getHeight()-175);
+            tabPaneAnalysedData.setMinHeight(stage.getHeight()-80);
+            tabPaneAnalysedData.setMaxHeight(stage.getHeight()-80);
+        });
         // Finalizing the Stage
         stage.setScene(sceneMainView);
         stage.setTitle("Moodle'i logide analüüsimine");
-        stage.setResizable(false);
         stage.show();
+        // Make stage resizable
+        stage.setWidth(stage.getWidth());
+        stage.setHeight(stage.getHeight());
     }
 
     // Display ListViews
-    private void displayEventContext() {
+    private void displayEventContext(Stage stage) {
         Platform.runLater(() -> {
             List<String> contextList = new ArrayList<>(moodleLogsProcessing.getEventContext());
             Collections.sort(contextList);
             listViewLogContext.getItems().addAll(contextList);
+            listViewLogContext.setMaxHeight(stage.getHeight()-175);
         });
     }
-    private void displayEventName() {
+    private void displayEventName(Stage stage) {
         Platform.runLater(() -> {
-            Set<String> setEventName = new HashSet<>();
+            Set<String> setEventName = new TreeSet<>();
             for (Map<String, String> log : moodleLogsProcessing.getLogs()) {
                 if (observableListLogContext.contains(log.get("Event context"))) {
                     setEventName.add(log.get("Event name"));
                 }
             }
-            List<String> listEventName = new ArrayList<>(setEventName);
+            List<String> listEventName = new TreeList<>(setEventName);
             Collections.sort(listEventName);
             listViewLogEvent.getItems().addAll(listEventName);
+            listViewLogEvent.setMaxHeight(stage.getHeight()-175);
             listViewLogEventFinal.setItems(listViewLogEvent.getItems());
+            listViewLogEventFinal.setMaxHeight(stage.getHeight()-175);
         });
     }
-    private void displayStudentGroup() {
+    private void displayStudentGroup(Stage stage) {
         Platform.runLater(() -> {
             List<String> groupList = new ArrayList<>(studentInfoProcessing.getStudentGroup());
             Collections.sort(groupList);
             listViewStudentGroup.getItems().addAll(groupList);
+            listViewStudentGroup.setMaxHeight(stage.getHeight()-175);
         });
 
     }
-    private void displayStudentName() {
+    private void displayStudentName(Stage stage) {
         Platform.runLater(() -> {
-            Set<String> setStudentName = new HashSet<>();
+            Set<String> setStudentName = new TreeSet<>();
             for (Map<String, String> log : studentInfoProcessing.getStudents()) {
                 if (observableListStudentGroup.contains(log.get("Group"))) {
                     setStudentName.add(log.get("Name"));
@@ -1198,12 +1329,14 @@ public class Main extends Application {
             List<String> listStudentName = new ArrayList<>(setStudentName);
             Collections.sort(listStudentName);
             listViewStudentName.getItems().addAll(listStudentName);
+            listViewStudentName.setMaxHeight(stage.getHeight()-175);
             listViewStudentNameFinal.setItems(listViewStudentName.getItems());
+            listViewStudentNameFinal.setMaxHeight(stage.getHeight()-175);
         });
 
     }
     // Display TableViews
-    private void displayTableViewLogs() {
+    private void displayTableViewLogs(Stage stage) {
         Platform.runLater(() -> {
             if (localDateFrom != null) {
                 if (localTimeFrom == null) {
@@ -1285,6 +1418,19 @@ public class Main extends Application {
                     }
                 }
             }
+            if (tableViewSelectedData.getColumns().size() == 5) {
+                tableViewSelectedData.getColumns().get(0).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(1).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(2).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(3).setMinWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(4).setMinWidth((stage.getWidth()-75)/5);
+
+                tableViewSelectedData.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/5);
+                tableViewSelectedData.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/5);
+            }
         });
     }
     private void displayTableViewStudentGrades() {
@@ -1311,7 +1457,7 @@ public class Main extends Application {
             tableViewSelectedStudentsGrades.setItems(data);
         });
     }
-    private void displayTableViewWeekAndDay() {
+    private void displayTableViewWeekAndDay(Stage stage) {
         Platform.runLater(() -> {
             Integer[] integers = new Integer[8];
             List<String> days = new ArrayList<>();
@@ -1329,7 +1475,6 @@ public class Main extends Application {
             for (Integer integer : integers) {
                 TableColumn<List<StringProperty>, String> columnWeekAndDay = new TableColumn<>(days.get(integer));
                 columnWeekAndDay.setCellValueFactory(data  -> data.getValue().get(integer));
-                columnWeekAndDay.setMinWidth(97);
                 tableViewWeekAndDay.getColumns().add(columnWeekAndDay);
             }
             ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
@@ -1350,9 +1495,28 @@ public class Main extends Application {
                 data.add(firstRow);
             }
             tableViewWeekAndDay.setItems(data);
+            if (tableViewWeekAndDay.getColumns().size() == 8) {
+                tableViewWeekAndDay.getColumns().get(0).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(1).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(2).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(3).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(4).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(5).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(6).setMinWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(7).setMinWidth((stage.getWidth()-75)/8);
+
+                tableViewWeekAndDay.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(5).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(6).setMaxWidth((stage.getWidth()-75)/8);
+                tableViewWeekAndDay.getColumns().get(7).setMaxWidth((stage.getWidth()-75)/8);
+            }
         });
     }
-    private void displayTableViewDayAndHour() {
+    private void displayTableViewDayAndHour(Stage stage) {
         Platform.runLater(() -> {
             Integer[] integers = new Integer[13];
             List<String> hours = new ArrayList<>();
@@ -1383,7 +1547,6 @@ public class Main extends Application {
             for (Integer integer : integers) {
                 TableColumn<List<StringProperty>, String> columnDayAndHour = new TableColumn<>(hours.get(integer));
                 columnDayAndHour.setCellValueFactory(data  -> data.getValue().get(integer));
-                columnDayAndHour.setMinWidth(58);
                 tableViewDayAndHour.getColumns().add(columnDayAndHour);
             }
             ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
@@ -1400,44 +1563,57 @@ public class Main extends Application {
                 data.add(firstRow);
             }
             tableViewDayAndHour.setItems(data);
+            if (tableViewDayAndHour.getColumns().size() == 13) {
+                tableViewDayAndHour.getColumns().get(0).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(1).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(2).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(3).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(4).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(5).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(6).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(7).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(8).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(9).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(10).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(11).setMinWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(12).setMinWidth((stage.getWidth()-75)/13);
+
+                tableViewDayAndHour.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(2).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(3).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(4).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(5).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(6).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(7).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(8).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(9).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(10).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(11).setMaxWidth((stage.getWidth()-75)/13);
+                tableViewDayAndHour.getColumns().get(12).setMaxWidth((stage.getWidth()-75)/13);
+            }
         });
     }
-    private void displayTableViewCorrelation() {
+    private void displayTableViewCorrelation(Stage stage) {
         Platform.runLater(() -> {
-            Integer[] integers = new Integer[2];
-            List<String> days = new ArrayList<>();
-            days.add("Hinne");
-            days.add("Logisid");
-            for (int i = 0; i < 2; i++) {
-                integers[i] = i;
-            }
-            for (Integer integer : integers) {
-                TableColumn<List<StringProperty>, String> columnCorrelation = new TableColumn<>(days.get(integer));
-                columnCorrelation.setCellValueFactory(data  -> data.getValue().get(integer));
-                columnCorrelation.setMinWidth(390);
-                tableViewCorrelation.getColumns().add(columnCorrelation);
-            }
-            ObservableList<List<StringProperty>> data = FXCollections.observableArrayList();
             for (Map<String, Double> map : listOfCorrelationData) {
-                List<StringProperty> firstRow = new ArrayList<>();
-                for (Integer integer : integers) {
-                    if (integer == 0) {
-                        firstRow.add(integer, new SimpleStringProperty(Double.toString(map.get("Points"))));
-                    }
-                    else {
-                        firstRow.add(integer, new SimpleStringProperty(Double.toString(map.get("Logs"))));
-                    }
-                }
-                data.add(firstRow);
+                Correlation correlation = new Correlation(map.get("Points"), map.get("Logs"));
+                tableViewCorrelation.getItems().add(correlation);
             }
-            tableViewCorrelation.setItems(data);
+            if (tableViewCorrelation.getColumns().size() == 2) {
+                tableViewCorrelation.getColumns().get(0).setMinWidth((stage.getWidth()-75)/2);
+                tableViewCorrelation.getColumns().get(1).setMinWidth((stage.getWidth()-75)/2);
+
+                tableViewCorrelation.getColumns().get(0).setMaxWidth((stage.getWidth()-75)/2);
+                tableViewCorrelation.getColumns().get(1).setMaxWidth((stage.getWidth()-75)/2);
+            }
         });
     }
     // Display BarCharts
     private void displayBarChartEventName() {
         Platform.runLater(() -> {
             XYChart.Series<Number, String> dataSeriesEventName = new XYChart.Series<>();
-            Map<String, Integer> dataMapEventName = new HashMap<>();
+            Map<String, Integer> dataMapEventName = new TreeMap<>();
             for (Log log : filteredResults) {
                 if (dataMapEventName.containsKey(log.getEventName())) {
                     dataMapEventName.put(log.getEventName(), dataMapEventName.get(log.getEventName()) + 1);
@@ -1476,7 +1652,6 @@ public class Main extends Application {
                     dataSeriesEventName.getData().add(new XYChart.Data<>(mapValueEventName.get(i), mapKeyEventName.get(i)));
                 }
             }
-            barChartEventName.setMinWidth(800);
             barChartEventName.setTitle("Kui palju sündmuse nime kohta käivaid kirjeid esineb logides");
             barChartEventName.setLegendVisible(false);
             barChartEventName.getData().add(dataSeriesEventName);
@@ -1485,7 +1660,7 @@ public class Main extends Application {
     private void displayBarChartEventContext() {
         Platform.runLater(() -> {
             XYChart.Series<Number, String> dataSeriesEventContext = new XYChart.Series<>();
-            Map<String, Integer> dataMapEventContext = new HashMap<>();
+            Map<String, Integer> dataMapEventContext = new TreeMap<>();
             for (Log log : filteredResults) {
                 if (dataMapEventContext.containsKey(log.getEventContext())) {
                     dataMapEventContext.put(log.getEventContext(), dataMapEventContext.get(log.getEventContext()) + 1);
@@ -1524,7 +1699,6 @@ public class Main extends Application {
                     dataSeriesEventContext.getData().add(new XYChart.Data<>(mapValueEventContext.get(i), mapKeyEventContext.get(i)));
                 }
             }
-            barChartEventContext.setMinWidth(800);
             barChartEventContext.setTitle("Kui palju sündmuse konteksti kohta käivaid kirjeid esineb logides");
             barChartEventContext.setLegendVisible(false);
             barChartEventContext.getData().add(dataSeriesEventContext);
@@ -1533,7 +1707,7 @@ public class Main extends Application {
     private void displayBarChartStudentGroup() {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentGroup = new XYChart.Series<>();
-            dataMapStudentGroup = new HashMap<>();
+            dataMapStudentGroup = new TreeMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentGroup.containsKey(log.getStudentGroup())) {
                     dataMapStudentGroup.put(log.getStudentGroup(), dataMapStudentGroup.get(log.getStudentGroup()) + 1);
@@ -1544,7 +1718,6 @@ public class Main extends Application {
             for (String key : dataMapStudentGroup.keySet()) {
                 dataSeriesStudentGroup.getData().add(new XYChart.Data<>(key, dataMapStudentGroup.get(key)));
             }
-            barChartStudentGroup.setMinWidth(800);
             barChartStudentGroup.setTitle("Kui palju iga rühm kohta käivaid kirjeid esineb logides");
             barChartStudentGroup.setLegendVisible(false);
             barChartStudentGroup.getData().add(dataSeriesStudentGroup);
@@ -1553,7 +1726,7 @@ public class Main extends Application {
     private void displayBarChartStudentName() {
         Platform.runLater(() -> {
             XYChart.Series<String, Number> dataSeriesStudentName = new XYChart.Series<>();
-            dataMapStudentName = new HashMap<>();
+            dataMapStudentName = new TreeMap<>();
             for (Log log : filteredResults) {
                 if (dataMapStudentName.containsKey(log.getStudentName())) {
                     dataMapStudentName.put(log.getStudentName(), dataMapStudentName.get(log.getStudentName()) + 1);
@@ -1564,7 +1737,6 @@ public class Main extends Application {
             for (String key : dataMapStudentName.keySet()) {
                 dataSeriesStudentName.getData().add(new XYChart.Data<>(key, dataMapStudentName.get(key)));
             }
-            barChartStudentName.setMinWidth(800);
             barChartStudentName.setTitle("Kui palju iga õpilase kohta käivaid kirjeid esineb logides");
             barChartStudentName.setLegendVisible(false);
             barChartStudentName.getData().add(dataSeriesStudentName);
@@ -1673,7 +1845,6 @@ public class Main extends Application {
                     mapDayOccurrencesByEachWeek.remove(week);
                 }
             }
-            stackedBarChartVisitsPerWeekAndDay.setMinWidth(800);
             stackedBarChartVisitsPerWeekAndDay.setTitle("Kui palju iga nädala ja päeva kohta käivaid kirjeid esineb logides");
             stackedBarChartVisitsPerWeekAndDay.getData().add(monday);
             stackedBarChartVisitsPerWeekAndDay.getData().add(tuesday);
@@ -1963,7 +2134,6 @@ public class Main extends Application {
                     twenty_two.getData().add((new XYChart.Data<>("P", mapHourOccurrencesByEachDay.get("P").get("22-23"))));
                 }
             }
-            stackedBarChartVisitsPerDayAndHour.setMinWidth(800);
             stackedBarChartVisitsPerDayAndHour.setTitle("Kui palju iga päeva ja tunni kohta käivaid kirjeid esineb logides");
             stackedBarChartVisitsPerDayAndHour.getData().add(zero);
             stackedBarChartVisitsPerDayAndHour.getData().add(two);
@@ -2064,7 +2234,6 @@ public class Main extends Application {
             for (int i = 0; i < time.size(); i++) {
                 dataSeriesVisitsPerHour.getData().add(new XYChart.Data<>(time.get(i), timeOccurrences.get(i)));
             }
-            barChartVisitsPerHour.setMinWidth(800);
             barChartVisitsPerHour.setTitle("Kui palju erinevate ajavahemike kohta käivaid kirjeid esineb logides");
             barChartVisitsPerHour.setLegendVisible(false);
             barChartVisitsPerHour.getData().add(dataSeriesVisitsPerHour);
@@ -2079,7 +2248,7 @@ public class Main extends Application {
             listOfCorrelationData = new ArrayList<>();
             listOfGradesData.remove(0);
             for (String student : dataMapStudentName.keySet()) {
-                Map<String, Double> hashMap = new HashMap<>();
+                Map<String, Double> hashMap = new TreeMap<>();
                 for (Map<String, String> map : listOfGradesData) {
                     if (map.get("Name").equals(student)) {
                         if (!map.get("Hinne (Punktid)").equals("-")) {
@@ -2094,8 +2263,7 @@ public class Main extends Application {
                     }
                 }
             }
-            scatterChartCorrelationBetweenLogsAndGrades.setMinWidth(800);
-            scatterChartCorrelationBetweenLogsAndGrades.setTitle("Hinnete ja logide vaheline suhe");
+            scatterChartCorrelationBetweenLogsAndGrades.setTitle("Hinnete ja logide vaheline korrelatsioon");
             scatterChartCorrelationBetweenLogsAndGrades.setLegendVisible(false);
             scatterChartCorrelationBetweenLogsAndGrades.getData().add(dataSeriesCorrelation);
             displayCoefficient.setText("Korrelatsioonikordaja on " + calculateCorrelationCoefficient(correlationX, correlationY));
@@ -2109,11 +2277,11 @@ public class Main extends Application {
         alertDisplayError.setContentText(content);
         alertDisplayError.show();
     }
-    private void displayInformationAlert() {
+    private void displayInformationAlert(String title, String header, String content) {
         Alert alertTimeHoursFromAfterTimeHoursTo = new Alert(Alert.AlertType.INFORMATION);
-        alertTimeHoursFromAfterTimeHoursTo.setTitle("Fail salvestati!");
-        alertTimeHoursFromAfterTimeHoursTo.setHeaderText("Fail on salvestatud!");
-        alertTimeHoursFromAfterTimeHoursTo.setContentText("Fail salvestati programmiga samasse kausta.");
+        alertTimeHoursFromAfterTimeHoursTo.setTitle(title);
+        alertTimeHoursFromAfterTimeHoursTo.setHeaderText(header);
+        alertTimeHoursFromAfterTimeHoursTo.setContentText(content);
         alertTimeHoursFromAfterTimeHoursTo.show();
     }
     // Other methods
@@ -2123,13 +2291,8 @@ public class Main extends Application {
         localTimeFrom = null;
         localTimeTo = null;
     }
-    private void setListViewSelectionModelAndSize(ListView<String> listView) {
-        listView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        listView.setMinWidth(800);
-        listView.setMaxWidth(800);
-    }
-    private void runMethodsForTabView() {
-        displayTableViewLogs();
+    private void runMethodsForTabView(Stage stage) {
+        displayTableViewLogs(stage);
         displayBarChartEventName();
         displayBarChartEventContext();
         displayBarChartStudentGroup();
@@ -2138,10 +2301,11 @@ public class Main extends Application {
         displayBarChartVisitsPerHour();
         displayStackedBarChartVisitsPerWeekAndDay();
         displayStackedBarChartVisitsPerDayAndHour();
-        displayTableViewWeekAndDay();
-        displayTableViewDayAndHour();
+        displayTableViewWeekAndDay(stage);
+        displayTableViewDayAndHour(stage);
         displayScatterChartCorrelationBetweenLogsAndGrades();
-        displayTableViewCorrelation();
+        displayTableViewCorrelation(stage);
+
     }
     private Double calculateCorrelationCoefficient(List<Double> correlationX, List<Double> correlationY) {
         int length = correlationX.size();
