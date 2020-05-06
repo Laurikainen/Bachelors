@@ -1,3 +1,8 @@
+/* 
+  SIS file processing to get students names and their groups. So they could be connected
+  to log entries.
+*/
+
 package FilesProcessing;
 
 import org.jsoup.Jsoup;
