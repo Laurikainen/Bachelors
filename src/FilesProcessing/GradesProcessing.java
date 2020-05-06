@@ -1,3 +1,9 @@
+/* 
+  Processing grades file to retrieve data about who have gotten the grades, 
+  what grade and for what, so the grades could be displayed as a table
+  and so correlation between log entries and grades could be shown.
+*/
+
 package FilesProcessing;
 
 import org.apache.poi.ss.usermodel.*;
