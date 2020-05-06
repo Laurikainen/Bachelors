@@ -1,3 +1,7 @@
+/*
+  Combining data for log table, so logs information could be displayed.
+*/
+
 package MainLogic;
 
 public class Log {
