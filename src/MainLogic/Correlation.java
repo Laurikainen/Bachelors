@@ -1,3 +1,7 @@
+/* 
+  Combining data for correlation table, so it could be displayed.
+*/
+
 package MainLogic;
 
 public class Correlation {
