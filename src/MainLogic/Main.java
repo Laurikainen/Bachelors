@@ -1,3 +1,11 @@
+/*
+  Main class
+  - all the three different files are combined
+  - all of the screens are made
+  - coefficent for correlation is calculated
+  - all the tables and graphs are made
+*/
+
 package MainLogic;
 
 import FilesProcessing.GradesProcessing;
