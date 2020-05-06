@@ -1,3 +1,8 @@
+/*
+  Log file processing to get values about name, time, event context and event name in order
+  to produce different tables and graphs and to combine the data with grades and by student groups.
+*/
+
 package FilesProcessing;
 
 import java.io.*;
